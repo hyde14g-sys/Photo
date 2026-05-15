@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>照片編輯器</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&display=swap');
+
+  :root {
+    --bg:        #1a1a1f;
+    --surface:   #24242c;
+    --panel:     #2d2d38;
+    --border:    #3a3a48;
+    --accent:    #e8ff5a;
+    --accent2:   #ff6b6b;
+    --accent3:   #5affda;
+    --text:      #f0f0f0;
+    --muted:     #888899;
+    --toolbar-h: 52px;
+    --statusbar-h: 28px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    user-select: none;
+  }
+
+  /* ── Title Bar ── */
+  #titlebar {
+    height: 40px;
+    background: var(--panel);
+    border-bottom: 1.5px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  #titlebar .logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 14px;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+  }
+  #titlebar .sep {
+    flex: 1;
+  }
+  #titlebar .filename {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+  }
+
+  /* ── Toolbar ── */
+  #toolbar {
+    height: var(--toolbar-h);
+    background: var(--surface);
+    border-bottom: 1.5px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 0 8px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    flex-shrink: 0;
+    scrollbar-width: none;
+  }
+  #toolbar::-webkit-scrollbar { display: none; }
+
+  .tool-group {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 0 4px;
+    border-right: 1.5px solid var(--border);
+    flex-shrink: 0;
+  }
+  .tool-group:last-child { border-right: none; }
+
+  .tool-btn {
+    width: 38px;
+    height: 38px;
+    background: transparent;
+    border: 1.5px solid transparent;
+    border-radius: 6px;
+    color: var(--text);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 18px;
+    transition: background 0.15s, border-color 0.15s;
+    position: relative;
+  }
+  .tool-btn span.label {
+    font-size: 7px;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+    line-height: 1;
+  }
+  .tool-btn:hover { background: var(--panel); border-color: var(--border); }
+  .tool-btn.active {
+    background: color-mix(in srgb, var(--accent) 15%, transparent);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .tool-btn.active span.label { color: var(--accent); }
+
+  /* Camera button — highlighted */
+  #btn-camera {
+    background: color-mix(in srgb, var(--accent) 20%, transparent);
+    border-color: var(--accent);
+  }
+  #btn-camera:hover { background: color-mix(in srgb, var(--accent) 35%, transparent); }
+
+  /* ── Canvas Area ── */
+  #canvas-area {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+    background: #111116;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Checkerboard backdrop */
+  #canvas-area::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(45deg, #1e1e26 25%, transparent 25%),
+      linear-gradient(-45deg, #1e1e26 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, #1e1e26 75%),
+      linear-gradient(-45deg, transparent 75%, #1e1e26 75%);
+    background-size: 20px 20px;
+    background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+    opacity: 0.4;
+  }
+
+  #main-canvas {
+    display: none;
+    position: relative;
+    z-index: 1;
+    cursor: crosshair;
+    touch-action: none;
+    image-rendering: pixelated;
+    max-width: 100%;
+    max-height: 100%;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.6), 0 0 0 1px var(--border);
+  }
+
+  /* Empty state */
+  #empty-state {
+    position: absolute;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    text-align: center;
+    padding: 32px;
+  }
+  #empty-state .icon {
+    font-size: 64px;
+    opacity: 0.3;
+    animation: float 3s ease-in-out infinite;
+  }
+  #empty-state h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    color: var(--text);
+    opacity: 0.7;
+  }
+  #empty-state p {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.6;
+    max-width: 240px;
+  }
+  #empty-cta {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .cta-btn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: 1.5px solid;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    cursor: pointer;
+    letter-spacing: 0.06em;
+    transition: all 0.2s;
+  }
+  .cta-btn.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #1a1a1f;
+    font-weight: 600;
+  }
+  .cta-btn.primary:hover { filter: brightness(1.1); }
+  .cta-btn.secondary {
+    background: transparent;
+    border-color: var(--border);
+    color: var(--text);
+  }
+  .cta-btn.secondary:hover { border-color: var(--accent3); color: var(--accent3); }
+
+  /* ── Status Bar ── */
+  #statusbar {
+    height: var(--statusbar-h);
+    background: var(--panel);
+    border-top: 1.5px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    gap: 16px;
+    flex-shrink: 0;
+  }
+  .status-item {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .status-item .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--muted);
+  }
+  .status-item.ready .dot { background: var(--accent3); }
+  .status-item.warn .dot { background: var(--accent); }
+
+  /* ── Camera Modal ── */
+  #camera-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.88);
+    z-index: 100;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 20px;
+  }
+  #camera-modal.open { display: flex; }
+
+  #camera-modal h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 16px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    color: var(--accent);
+  }
+
+  #video-preview {
+    width: 100%;
+    max-width: 480px;
+    aspect-ratio: 4/3;
+    border-radius: 12px;
+    background: #000;
+    border: 1.5px solid var(--border);
+    object-fit: cover;
+    overflow: hidden;
+    display: block;
+  }
+
+  .modal-actions {
+    display: flex;
+    gap: 12px;
+  }
+
+  .modal-btn {
+    padding: 12px 24px;
+    border-radius: 8px;
+    border: 1.5px solid;
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    cursor: pointer;
+    letter-spacing: 0.04em;
+    transition: all 0.2s;
+  }
+  .modal-btn.snap {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #1a1a1f;
+    font-weight: 600;
+    font-size: 20px;
+    width: 60px; height: 60px;
+    border-radius: 50%;
+    padding: 0;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 0 20px color-mix(in srgb, var(--accent) 40%, transparent);
+  }
+  .modal-btn.snap:hover { filter: brightness(1.15); transform: scale(1.05); }
+  .modal-btn.cancel {
+    background: transparent;
+    border-color: var(--border);
+    color: var(--text);
+  }
+  .modal-btn.cancel:hover { border-color: var(--accent2); color: var(--accent2); }
+
+  #camera-msg {
+    font-size: 11px;
+    color: var(--muted);
+    text-align: center;
+  }
+
+  /* hidden canvas for capture */
+  #capture-canvas { display: none; }
+
+  /* ── Animations ── */
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50%       { transform: translateY(-10px); }
+  }
+
+  /* Flash effect on capture */
+  .flash {
+    position: fixed; inset: 0; z-index: 200;
+    background: #fff; pointer-events: none;
+    animation: flashAnim 0.3s ease-out forwards;
+  }
+  @keyframes flashAnim {
+    0%   { opacity: 0.9; }
+    100% { opacity: 0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Title Bar -->
+<div id="titlebar">
+  <span class="logo">✦ PIXEDIT</span>
+  <span class="sep"></span>
+  <span class="filename" id="filename-label">尚未載入影像</span>
+</div>
+
+<!-- Toolbar -->
+<div id="toolbar">
+  <!-- 拍照 / 載入 -->
+  <div class="tool-group">
+    <button class="tool-btn" id="btn-camera" onclick="openCamera()" title="拍照">
+      📷<span class="label">拍照</span>
+    </button>
+    <button class="tool-btn" onclick="openFile()" title="開啟圖片">
+      🗂️<span class="label">開啟</span>
+    </button>
+  </div>
+
+  <!-- 儲存 -->
+  <div class="tool-group">
+    <button class="tool-btn" id="btn-save" onclick="saveImage()" title="儲存">
+      💾<span class="label">儲存</span>
+    </button>
+  </div>
+
+  <!-- 工具（後續功能預留） -->
+  <div class="tool-group">
+    <button class="tool-btn" id="tool-pencil" onclick="setTool('pencil')" title="鉛筆（即將推出）">
+      ✏️<span class="label">鉛筆</span>
+    </button>
+    <button class="tool-btn" id="tool-eraser" onclick="setTool('eraser')" title="橡皮擦（即將推出）">
+      🧹<span class="label">橡皮</span>
+    </button>
+    <button class="tool-btn" id="tool-crop" onclick="setTool('crop')" title="裁切（即將推出）">
+      ✂️<span class="label">裁切</span>
+    </button>
+    <button class="tool-btn" id="tool-text" onclick="setTool('text')" title="文字（即將推出）">
+      🔤<span class="label">文字</span>
+    </button>
+  </div>
+
+  <!-- 濾鏡（後續功能預留） -->
+  <div class="tool-group">
+    <button class="tool-btn" id="tool-filter" onclick="setTool('filter')" title="濾鏡（即將推出）">
+      🎨<span class="label">濾鏡</span>
+    </button>
+    <button class="tool-btn" id="tool-adjust" onclick="setTool('adjust')" title="調整（即將推出）">
+      🌡️<span class="label">調整</span>
+    </button>
+    <button class="tool-btn" id="tool-rotate" onclick="rotateImage()" title="旋轉（即將推出）">
+      🔄<span class="label">旋轉</span>
+    </button>
+  </div>
+
+  <!-- 復原 -->
+  <div class="tool-group">
+    <button class="tool-btn" id="btn-undo" onclick="undoAction()" title="復原">
+      ↩️<span class="label">復原</span>
+    </button>
+    <button class="tool-btn" id="btn-redo" onclick="redoAction()" title="重做">
+      ↪️<span class="label">重做</span>
+    </button>
+  </div>
+</div>
+
+<!-- Canvas Area -->
+<div id="canvas-area">
+  <!-- Empty State -->
+  <div id="empty-state">
+    <div class="icon">📷</div>
+    <h2>尚未載入任何影像</h2>
+    <p>點擊「拍照」直接使用相機，或開啟現有的圖片檔案開始編輯</p>
+    <div id="empty-cta">
+      <button class="cta-btn primary" onclick="openCamera()">📷 拍照</button>
+      <button class="cta-btn secondary" onclick="openFile()">🗂️ 開啟圖片</button>
+    </div>
+  </div>
+
+  <canvas id="main-canvas"></canvas>
+</div>
+
+<!-- Status Bar -->
+<div id="statusbar">
+  <div class="status-item ready" id="status-state">
+    <div class="dot"></div>
+    <span id="status-text">就緒</span>
+  </div>
+  <div class="status-item" id="status-dim">
+    <span id="dim-text">—</span>
+  </div>
+  <div class="status-item" id="status-tool">
+    <span id="tool-text">工具：無</span>
+  </div>
+</div>
+
+<!-- Camera Modal -->
+<div id="camera-modal">
+  <h3>📷 相機預覽</h3>
+  <video id="video-preview" autoplay playsinline muted></video>
+  <canvas id="capture-canvas"></canvas>
+  <p id="camera-msg">對準目標後按下快門</p>
+  <div class="modal-actions">
+    <button class="modal-btn cancel" onclick="closeCamera()">✕ 取消</button>
+    <button class="modal-btn snap" onclick="capturePhoto()" title="拍照">◉</button>
+    <button class="modal-btn cancel" id="btn-switch-cam" onclick="switchCamera()">🔄 翻轉</button>
+  </div>
+</div>
+
+<!-- Hidden file input -->
+<input type="file" id="file-input" accept="image/*" style="display:none" onchange="loadImageFile(event)">
+
+<script>
+  // ── State ──────────────────────────────────────────────
+  let currentStream   = null;
+  let facingMode      = 'environment'; // back camera default
+  let currentTool     = null;
+  let imageLoaded     = false;
+  const canvas        = document.getElementById('main-canvas');
+  const ctx           = canvas.getContext('2d');
+
+  // ── Tool Selection ─────────────────────────────────────
+  function setTool(name) {
+    currentTool = name;
+    document.querySelectorAll('.tool-btn[id^="tool-"]').forEach(b => b.classList.remove('active'));
+    const btn = document.getElementById('tool-' + name);
+    if (btn) btn.classList.add('active');
+    document.getElementById('tool-text').textContent = '工具：' + name;
+    setStatus('已選擇工具：' + name + '（功能即將推出）', 'warn');
+  }
+
+  // ── Camera ─────────────────────────────────────────────
+  async function openCamera() {
+    const modal = document.getElementById('camera-modal');
+    modal.classList.add('open');
+    await startStream();
+  }
+
+  async function startStream() {
+    if (currentStream) stopStream();
+    try {
+      const constraints = { video: { facingMode, width: { ideal: 1920 }, height: { ideal: 1080 } }, audio: false };
+      currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+      const video = document.getElementById('video-preview');
+      video.srcObject = currentStream;
+      document.getElementById('camera-msg').textContent = '對準目標後按下快門';
+    } catch (err) {
+      document.getElementById('camera-msg').textContent = '⚠️ 無法存取相機：' + err.message;
+    }
+  }
+
+  function stopStream() {
+    if (currentStream) {
+      currentStream.getTracks().forEach(t => t.stop());
+      currentStream = null;
+    }
+  }
+
+  function closeCamera() {
+    stopStream();
+    document.getElementById('camera-modal').classList.remove('open');
+    document.getElementById('video-preview').srcObject = null;
+  }
+
+  async function switchCamera() {
+    facingMode = facingMode === 'environment' ? 'user' : 'environment';
+    await startStream();
+  }
+
+  function capturePhoto() {
+    const video = document.getElementById('video-preview');
+    const cap   = document.getElementById('capture-canvas');
+    cap.width   = video.videoWidth  || 1280;
+    cap.height  = video.videoHeight || 720;
+    const cctx  = cap.getContext('2d');
+    cctx.drawImage(video, 0, 0, cap.width, cap.height);
+
+    // Flash effect
+    const flash = document.createElement('div');
+    flash.className = 'flash';
+    document.body.appendChild(flash);
+    setTimeout(() => flash.remove(), 400);
+
+    const img = new Image();
+    img.onload = () => {
+      loadImageToCanvas(img, 'camera_' + Date.now() + '.jpg');
+      closeCamera();
+    };
+    img.src = cap.toDataURL('image/jpeg', 0.95);
+  }
+
+  // ── File Open ──────────────────────────────────────────
+  function openFile() {
+    document.getElementById('file-input').click();
+  }
+
+  function loadImageFile(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => loadImageToCanvas(img, file.name);
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+    event.target.value = '';
+  }
+
+  // ── Load Image to Canvas ───────────────────────────────
+  function loadImageToCanvas(img, name) {
+    canvas.width  = img.naturalWidth  || img.width;
+    canvas.height = img.naturalHeight || img.height;
+    ctx.drawImage(img, 0, 0);
+
+    canvas.style.display = 'block';
+    document.getElementById('empty-state').style.display = 'none';
+    document.getElementById('filename-label').textContent = name;
+    document.getElementById('dim-text').textContent = canvas.width + ' × ' + canvas.height + ' px';
+    imageLoaded = true;
+    setStatus('影像已載入', 'ready');
+  }
+
+  // ── Save ───────────────────────────────────────────────
+  function saveImage() {
+    if (!imageLoaded) { setStatus('⚠️ 尚未載入影像', 'warn'); return; }
+    const link = document.createElement('a');
+    link.download = 'pixedit_' + Date.now() + '.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    setStatus('已儲存影像', 'ready');
+  }
+
+  // ── Rotate (stub) ──────────────────────────────────────
+  function rotateImage() {
+    if (!imageLoaded) { setStatus('⚠️ 尚未載入影像', 'warn'); return; }
+    const tmp  = document.createElement('canvas');
+    tmp.width  = canvas.height;
+    tmp.height = canvas.width;
+    const t    = tmp.getContext('2d');
+    t.translate(tmp.width / 2, tmp.height / 2);
+    t.rotate(Math.PI / 2);
+    t.drawImage(canvas, -canvas.width / 2, -canvas.height / 2);
+    canvas.width  = tmp.width;
+    canvas.height = tmp.height;
+    ctx.drawImage(tmp, 0, 0);
+    document.getElementById('dim-text').textContent = canvas.width + ' × ' + canvas.height + ' px';
+    setStatus('已旋轉 90°', 'ready');
+  }
+
+  // ── Undo / Redo (stub) ─────────────────────────────────
+  function undoAction() { setStatus('復原功能即將推出', 'warn'); }
+  function redoAction() { setStatus('重做功能即將推出', 'warn'); }
+
+  // ── Status ─────────────────────────────────────────────
+  function setStatus(msg, type = 'ready') {
+    const item = document.getElementById('status-state');
+    item.className = 'status-item ' + type;
+    document.getElementById('status-text').textContent = msg;
+  }
+
+  // ── Prevent scroll bounce on mobile ───────────────────
+  document.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
+</script>
+</body>
+</html>
