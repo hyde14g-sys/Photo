@@ -4461,8 +4461,9 @@ window.peConfirmLabel = function() {
   if (parsed && pePending) {
     const { canvasX, canvasY } = pePending;
     const seqIdx = peItems.length;
-    peItems.push({ price: parsed.price, qty: parsed.qty, seqIdx, canvasX, canvasY, raw });
+    // Save BEFORE drawing so undo can restore to pre-label state
     peSaveHist();
+    peItems.push({ price: parsed.price, qty: parsed.qty, seqIdx, canvasX, canvasY, raw });
     peCtx.font = '700 ' + peFontPx + 'px "Space Mono", monospace';
     peCtx.fillStyle = peLabelClr; peCtx.textBaseline = 'top';
     peCtx.shadowColor = 'rgba(0,0,0,0.7)'; peCtx.shadowBlur = 5;
@@ -4661,13 +4662,44 @@ function peAddPhotoItemRow(seqIdx, price, qty) {
   priceInp.addEventListener('input', upd);
 }
 
-window.peRemoveItemRow = function(rowId, seqIdx) {
-  const el = document.getElementById('itemRow_' + rowId); if (el) el.remove();
-  const badge = document.getElementById('pe-badge-' + seqIdx); if (badge) badge.remove();
+window.peRemoveItemRow = async function(rowId, seqIdx) {
+  // 1. Remove the item row UI
+  const el = document.getElementById('itemRow_' + rowId);
+  if (el) el.remove();
+
+  // 2. Remove this badge
+  const badge = document.getElementById('pe-badge-' + seqIdx);
+  if (badge) badge.remove();
+
+  // 3. Remove from items array
   peItems = peItems.filter(it => it.seqIdx !== seqIdx);
+
+  // 4. Undo canvas to restore the state before this label was drawn
+  //    Each label saves one history entry before drawing, so one undo per remove
+  if (peUndoStack.length > 0) {
+    // Restore to snapshot taken just before this label was drawn
+    const snapshot = peUndoStack.pop();
+    peRedoStack = []; // clear redo since we're branching
+    await peRestoreURL(snapshot);
+    // Redraw all remaining labels on top of the restored canvas
+    peItems.forEach(it => {
+      peCtx.font         = '700 ' + peFontPx + 'px "Space Mono", monospace';
+      peCtx.fillStyle    = peLabelClr;
+      peCtx.textBaseline = 'top';
+      peCtx.shadowColor  = 'rgba(0,0,0,0.7)';
+      peCtx.shadowBlur   = 5;
+      peCtx.fillText(it.raw, it.canvasX, it.canvasY);
+      peCtx.shadowBlur   = 0;
+    });
+  }
+  peUpdHistBtns();
+
+  // 5. Renumber remaining badges
   peItems.sort((a,b) => a.seqIdx - b.seqIdx).forEach((it, ni) => {
-    const b = document.getElementById('pe-badge-' + it.seqIdx); if (b) b.textContent = (ni+1)+'.';
+    const b = document.getElementById('pe-badge-' + it.seqIdx);
+    if (b) b.textContent = (ni + 1) + '.';
   });
+
   if (peItems.length === 0) document.getElementById('pe-items-panel').style.display = 'none';
 };
 
@@ -4675,16 +4707,18 @@ window.peGenerateOrder = function() {
   const rows = document.querySelectorAll('#pe-item-list .item-row');
   if (rows.length === 0) { alert('尚無標記品項'); return; }
   let added = 0;
-  rows.forEach(row => {
+  rows.forEach((row, rowIdx) => {
     const id = row.id.replace('itemRow_', '');
     const prefix   = document.getElementById('prefix_' + id)?.value.trim() || '';
     const catLabel = document.getElementById('catLabel_' + id)?.textContent.replace(' ▼','').trim() || '';
     const catName  = (catLabel === '選擇品項') ? '' : catLabel;
     const isPreorder = document.getElementById('preorderBtn_' + id)?.getAttribute('data-on') === '1';
     let name = ((isPreorder ? '預購' : '') + prefix + catName).trim();
+    // 沒有填品項名稱時，預設為「編號1」「編號2」…
+    if (!name) name = '編號' + (rowIdx + 1);
     const qty   = parseFloat(document.getElementById('qty_' + id)?.value)   || 1;
     const price = parseFloat(document.getElementById('price_' + id)?.value) || 0;
-    if (!name || price <= 0) return;
+    if (price <= 0) return;
     orders.push({ id: nextId++, name, qty, price, source: 'photo' });
     added++;
   });
