@@ -4889,19 +4889,6 @@ window.pePinLabel = function() {
   peCtx.fillText(badgeText, badgeX + badgePad, badgeY + badgePad);
   peCtx.textBaseline = 'top';
 
-  // DOM badge overlay
-  const fl    = document.getElementById('pe-float-label');
-  const dispX = parseFloat(fl.style.left) || 0;
-  const dispY = parseFloat(fl.style.top)  || 0;
-  const badge = document.createElement('div');
-  badge.className   = 'pe-seq-badge';
-  badge.textContent = (seqIdx + 1) + '.';
-  badge.id          = 'pe-badge-' + seqIdx;
-  badge.style.left  = dispX + 'px';
-  badge.style.top   = dispY + 'px';
-  document.getElementById('pe-canvas-area').appendChild(badge);
-  peSeqBadges.push(badge);
-
   floatLabel.classList.remove('active');
   pinBtn.classList.remove('active');
   peFloatItem = null;
