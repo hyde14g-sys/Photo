@@ -24,479 +24,309 @@
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
   body {
-    background: var(--bg);
-    color: var(--text);
+    background: var(--bg); color: var(--text);
     font-family: 'DM Mono', monospace;
-    height: 100dvh;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    user-select: none;
+    height: 100dvh; display: flex; flex-direction: column;
+    overflow: hidden; user-select: none;
   }
 
   /* ── Title Bar ── */
   #titlebar {
-    height: 40px;
-    background: var(--panel);
+    height: 40px; background: var(--panel);
     border-bottom: 1.5px solid var(--border);
-    display: flex; align-items: center;
-    padding: 0 12px; gap: 8px; flex-shrink: 0;
+    display: flex; align-items: center; padding: 0 12px; gap: 8px; flex-shrink: 0;
   }
-  #titlebar .logo {
-    font-family: 'Syne', sans-serif; font-weight: 800;
-    font-size: 14px; letter-spacing: 0.08em; color: var(--accent);
-  }
-  #titlebar .sep { flex: 1; }
-  #titlebar .filename { font-size: 11px; color: var(--muted); letter-spacing: 0.04em; }
+  #titlebar .logo { font-family:'Syne',sans-serif; font-weight:800; font-size:14px; letter-spacing:.08em; color:var(--accent); }
+  #titlebar .sep  { flex:1; }
+  #titlebar .filename { font-size:11px; color:var(--muted); letter-spacing:.04em; }
 
-  /* ── Shared Toolbar Row ── */
+  /* ── Toolbar Rows ── */
   .toolbar-row {
-    height: var(--toolbar-h);
-    background: var(--surface);
+    height: var(--toolbar-h); background: var(--surface);
     border-bottom: 1.5px solid var(--border);
-    display: flex; align-items: center;
-    gap: 2px; padding: 0 8px;
+    display: flex; align-items: center; gap: 2px; padding: 0 8px;
     overflow-x: auto; overflow-y: visible;
     flex-shrink: 0; scrollbar-width: none;
     position: relative; z-index: 10;
   }
   .toolbar-row::-webkit-scrollbar { display: none; }
-
-  /* row 2 slightly different bg to visually separate */
-  #toolbar-row2 {
-    background: #20202a;
-    z-index: 9;
-  }
+  #toolbar-row2 { background: #20202a; z-index: 9; }
 
   .tool-group {
-    display: flex; align-items: center;
-    gap: 2px; padding: 0 4px;
-    border-right: 1.5px solid var(--border);
-    flex-shrink: 0; height: 100%;
+    display: flex; align-items: center; gap: 2px; padding: 0 4px;
+    border-right: 1.5px solid var(--border); flex-shrink: 0; height: 100%;
   }
   .tool-group:last-child { border-right: none; }
 
   /* ── Generic tool button ── */
   .tool-btn {
-    width: 42px; height: 42px;
-    background: transparent;
-    border: 1.5px solid transparent;
-    border-radius: 6px; color: var(--text);
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    flex-direction: column; gap: 2px;
-    font-size: 18px;
-    transition: background 0.15s, border-color 0.15s;
-    flex-shrink: 0;
+    width:42px; height:42px; background:transparent;
+    border:1.5px solid transparent; border-radius:6px; color:var(--text);
+    cursor:pointer; display:flex; align-items:center; justify-content:center;
+    flex-direction:column; gap:2px; font-size:18px;
+    transition:background .15s,border-color .15s; flex-shrink:0;
   }
-  .tool-btn span.label {
-    font-size: 7px; color: var(--muted);
-    letter-spacing: 0.04em; line-height: 1;
-  }
-  .tool-btn:hover  { background: var(--panel); border-color: var(--border); }
-  .tool-btn.active {
-    background: color-mix(in srgb, var(--accent) 15%, transparent);
-    border-color: var(--accent); color: var(--accent);
-  }
-  .tool-btn.active span.label { color: var(--accent); }
-  .tool-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .tool-btn span.label { font-size:7px; color:var(--muted); letter-spacing:.04em; line-height:1; }
+  .tool-btn:hover  { background:var(--panel); border-color:var(--border); }
+  .tool-btn.active { background:color-mix(in srgb,var(--accent) 15%,transparent); border-color:var(--accent); color:var(--accent); }
+  .tool-btn.active span.label { color:var(--accent); }
+  .tool-btn:disabled { opacity:.3; cursor:not-allowed; }
 
-  #btn-camera {
-    background: color-mix(in srgb, var(--accent) 18%, transparent);
-    border-color: var(--accent);
-  }
-  #btn-camera:hover { background: color-mix(in srgb, var(--accent) 32%, transparent); }
+  #btn-camera { background:color-mix(in srgb,var(--accent) 18%,transparent); border-color:var(--accent); }
+  #btn-camera:hover { background:color-mix(in srgb,var(--accent) 32%,transparent); }
 
-  /* label tool highlight — accent3 */
-  #tool-label.active {
-    background: color-mix(in srgb, var(--accent3) 15%, transparent);
-    border-color: var(--accent3); color: var(--accent3);
-  }
-  #tool-label.active span.label { color: var(--accent3); }
+  #tool-label.active { background:color-mix(in srgb,var(--accent3) 15%,transparent); border-color:var(--accent3); color:var(--accent3); }
+  #tool-label.active span.label { color:var(--accent3); }
 
-  /* ── Color Button (shared for row1 & row2) ── */
+  /* ── Color Button ── */
   .color-btn {
-    width: 42px; height: 42px;
-    border-radius: 6px; border: 1.5px solid var(--border);
-    background: transparent; cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    flex-direction: column; gap: 3px; flex-shrink: 0;
-    transition: border-color 0.15s; position: relative;
+    width:42px; height:42px; border-radius:6px; border:1.5px solid var(--border);
+    background:transparent; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; flex-direction:column; gap:3px;
+    flex-shrink:0; transition:border-color .15s; position:relative;
   }
-  .color-btn:hover { border-color: var(--accent3); }
-  .color-swatch-inner {
-    width: 22px; height: 22px; border-radius: 4px;
-    border: 1.5px solid rgba(255,255,255,0.25);
-    pointer-events: none;
-  }
-  .color-btn span.label {
-    font-size: 7px; color: var(--muted);
-    letter-spacing: 0.04em; line-height: 1;
-    font-family: 'DM Mono', monospace;
-  }
+  .color-btn:hover { border-color:var(--accent3); }
+  .color-swatch-inner { width:22px; height:22px; border-radius:4px; border:1.5px solid rgba(255,255,255,.25); pointer-events:none; }
+  .color-btn span.label { font-size:7px; color:var(--muted); letter-spacing:.04em; line-height:1; font-family:'DM Mono',monospace; }
 
-  /* ── Color Popup (shared) ── */
+  /* ── Color Popup ── */
   .color-popup {
-    display: none;
-    position: absolute;
-    top: calc(100% + 6px);
-    left: 0;
-    background: var(--panel);
-    border: 1.5px solid var(--border);
-    border-radius: 12px;
-    padding: 12px;
-    z-index: 300;
-    box-shadow: 0 12px 40px rgba(0,0,0,0.6);
-    flex-direction: column; gap: 10px;
-    min-width: 180px;
+    display:none; position:absolute; top:calc(100% + 6px); left:0;
+    background:var(--panel); border:1.5px solid var(--border);
+    border-radius:12px; padding:12px; z-index:300;
+    box-shadow:0 12px 40px rgba(0,0,0,.6);
+    flex-direction:column; gap:10px; min-width:190px;
   }
-  .color-popup.open { display: flex; }
-  .palette-grid {
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: 7px;
-  }
+  .color-popup.open { display:flex; }
+  .palette-grid { display:grid; grid-template-columns:repeat(6,1fr); gap:7px; }
   .palette-swatch {
-    width: 100%; aspect-ratio: 1;
-    border-radius: 6px;
-    border: 2px solid transparent;
-    cursor: pointer;
-    transition: transform 0.12s, border-color 0.12s;
+    width:100%; aspect-ratio:1; border-radius:6px; border:2px solid transparent;
+    cursor:pointer; transition:transform .12s,border-color .12s;
   }
-  .palette-swatch:hover   { transform: scale(1.18); }
-  .palette-swatch.selected { border-color: #fff; transform: scale(1.08); }
-  .palette-divider { height: 1px; background: var(--border); }
+  .palette-swatch:hover    { transform:scale(1.18); }
+  .palette-swatch.selected { border-color:#fff; transform:scale(1.08); }
+  .palette-divider { height:1px; background:var(--border); }
   .palette-custom-btn {
-    width: 100%; padding: 7px 10px;
-    background: var(--surface); border: 1.5px solid var(--border);
-    border-radius: 6px; color: var(--text);
-    font-family: 'DM Mono', monospace; font-size: 10px;
-    cursor: pointer; letter-spacing: 0.04em; text-align: center;
-    transition: border-color 0.15s;
+    width:100%; padding:7px 10px; background:var(--surface); border:1.5px solid var(--border);
+    border-radius:6px; color:var(--text); font-family:'DM Mono',monospace; font-size:10px;
+    cursor:pointer; letter-spacing:.04em; text-align:center; transition:border-color .15s;
   }
-  .palette-custom-btn:hover { border-color: var(--accent3); color: var(--accent3); }
+  .palette-custom-btn:hover { border-color:var(--accent3); color:var(--accent3); }
 
   /* ── Brush Size ── */
   .size-btn {
-    width: 42px; height: 42px;
-    background: transparent; border: 1.5px solid transparent;
-    border-radius: 6px; cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    flex-direction: column; gap: 4px;
-    transition: background 0.15s, border-color 0.15s; flex-shrink: 0;
+    width:42px; height:42px; background:transparent; border:1.5px solid transparent;
+    border-radius:6px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; flex-direction:column; gap:4px;
+    transition:background .15s,border-color .15s; flex-shrink:0;
   }
-  .size-btn:hover  { background: var(--panel); border-color: var(--border); }
-  .size-btn.active {
-    background: color-mix(in srgb, var(--accent) 15%, transparent);
-    border-color: var(--accent);
-  }
-  .size-dot { background: var(--text); border-radius: 50%; flex-shrink: 0; }
-  .size-btn.active .size-dot { background: var(--accent); }
-  .size-btn span.label {
-    font-size: 7px; color: var(--muted);
-    font-family: 'DM Mono', monospace; letter-spacing: 0.04em; line-height: 1;
-  }
-  .size-btn.active span.label { color: var(--accent); }
+  .size-btn:hover  { background:var(--panel); border-color:var(--border); }
+  .size-btn.active { background:color-mix(in srgb,var(--accent) 15%,transparent); border-color:var(--accent); }
+  .size-dot { background:var(--text); border-radius:50%; flex-shrink:0; }
+  .size-btn.active .size-dot { background:var(--accent); }
+  .size-btn span.label { font-size:7px; color:var(--muted); font-family:'DM Mono',monospace; letter-spacing:.04em; line-height:1; }
+  .size-btn.active span.label { color:var(--accent); }
 
-  /* ── Font Size Buttons (row 2) ── */
+  /* ── Font Size Buttons ── */
   .fsize-btn {
-    height: 42px; min-width: 42px; padding: 0 6px;
-    background: transparent; border: 1.5px solid transparent;
-    border-radius: 6px; cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    flex-direction: column; gap: 2px;
-    transition: background 0.15s, border-color 0.15s; flex-shrink: 0;
+    height:42px; min-width:42px; padding:0 6px; background:transparent;
+    border:1.5px solid transparent; border-radius:6px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; flex-direction:column; gap:2px;
+    transition:background .15s,border-color .15s; flex-shrink:0;
   }
-  .fsize-btn:hover  { background: var(--panel); border-color: var(--border); }
-  .fsize-btn.active {
-    background: color-mix(in srgb, var(--accent3) 15%, transparent);
-    border-color: var(--accent3);
-  }
-  .fsize-btn .fsize-preview {
-    font-family: 'DM Mono', monospace; font-weight: 500;
-    color: var(--text); line-height: 1;
-  }
-  .fsize-btn.active .fsize-preview { color: var(--accent3); }
-  .fsize-btn span.label {
-    font-size: 7px; color: var(--muted);
-    letter-spacing: 0.04em; line-height: 1;
-    font-family: 'DM Mono', monospace;
-  }
-  .fsize-btn.active span.label { color: var(--accent3); }
+  .fsize-btn:hover  { background:var(--panel); border-color:var(--border); }
+  .fsize-btn.active { background:color-mix(in srgb,var(--accent3) 15%,transparent); border-color:var(--accent3); }
+  .fsize-btn .fsize-preview { font-family:'DM Mono',monospace; font-weight:500; color:var(--text); line-height:1; }
+  .fsize-btn.active .fsize-preview { color:var(--accent3); }
+  .fsize-btn span.label { font-size:7px; color:var(--muted); letter-spacing:.04em; line-height:1; font-family:'DM Mono',monospace; }
+  .fsize-btn.active span.label { color:var(--accent3); }
 
   /* ── Canvas Area ── */
   #canvas-area {
-    flex: 1; overflow: hidden; position: relative;
-    background: #111116;
-    display: flex; align-items: center; justify-content: center;
+    flex:1; overflow:hidden; position:relative;
+    background:#111116; display:flex; align-items:center; justify-content:center;
   }
   #canvas-area::before {
-    content: ''; position: absolute; inset: 0;
+    content:''; position:absolute; inset:0;
     background-image:
-      linear-gradient(45deg,  #1e1e26 25%, transparent 25%),
-      linear-gradient(-45deg, #1e1e26 25%, transparent 25%),
-      linear-gradient(45deg,  transparent 75%, #1e1e26 75%),
-      linear-gradient(-45deg, transparent 75%, #1e1e26 75%);
-    background-size: 20px 20px;
-    background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
-    opacity: 0.4;
+      linear-gradient(45deg,  #1e1e26 25%,transparent 25%),
+      linear-gradient(-45deg, #1e1e26 25%,transparent 25%),
+      linear-gradient(45deg,  transparent 75%,#1e1e26 75%),
+      linear-gradient(-45deg, transparent 75%,#1e1e26 75%);
+    background-size:20px 20px;
+    background-position:0 0,0 10px,10px -10px,-10px 0px; opacity:.4;
   }
   #main-canvas {
-    display: none; position: relative; z-index: 1;
-    cursor: crosshair; touch-action: none;
-    max-width: 100%; max-height: 100%;
-    box-shadow: 0 8px 40px rgba(0,0,0,0.6), 0 0 0 1px var(--border);
+    display:none; position:relative; z-index:1;
+    cursor:crosshair; touch-action:none;
+    max-width:100%; max-height:100%;
+    box-shadow:0 8px 40px rgba(0,0,0,.6),0 0 0 1px var(--border);
   }
 
   /* ── Empty State ── */
   #empty-state {
-    position: absolute; z-index: 2;
-    display: flex; flex-direction: column;
-    align-items: center; gap: 16px;
-    text-align: center; padding: 32px;
+    position:absolute; z-index:2;
+    display:flex; flex-direction:column; align-items:center; gap:16px;
+    text-align:center; padding:32px;
   }
-  #empty-state .icon { font-size: 64px; opacity: 0.3; animation: float 3s ease-in-out infinite; }
-  #empty-state h2 {
-    font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 800;
-    letter-spacing: 0.04em; color: var(--text); opacity: 0.7;
-  }
-  #empty-state p { font-size: 12px; color: var(--muted); line-height: 1.6; max-width: 240px; }
-  #empty-cta { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
-  .cta-btn {
-    padding: 10px 20px; border-radius: 8px; border: 1.5px solid;
-    font-family: 'DM Mono', monospace; font-size: 12px;
-    cursor: pointer; letter-spacing: 0.06em; transition: all 0.2s;
-  }
-  .cta-btn.primary  { background: var(--accent); border-color: var(--accent); color: #1a1a1f; font-weight: 600; }
-  .cta-btn.primary:hover { filter: brightness(1.1); }
-  .cta-btn.secondary { background: transparent; border-color: var(--border); color: var(--text); }
-  .cta-btn.secondary:hover { border-color: var(--accent3); color: var(--accent3); }
+  #empty-state .icon { font-size:64px; opacity:.3; animation:float 3s ease-in-out infinite; }
+  #empty-state h2 { font-family:'Syne',sans-serif; font-size:18px; font-weight:800; letter-spacing:.04em; color:var(--text); opacity:.7; }
+  #empty-state p  { font-size:12px; color:var(--muted); line-height:1.6; max-width:240px; }
+  #empty-cta { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
+  .cta-btn { padding:10px 20px; border-radius:8px; border:1.5px solid; font-family:'DM Mono',monospace; font-size:12px; cursor:pointer; letter-spacing:.06em; transition:all .2s; }
+  .cta-btn.primary   { background:var(--accent); border-color:var(--accent); color:#1a1a1f; font-weight:600; }
+  .cta-btn.primary:hover { filter:brightness(1.1); }
+  .cta-btn.secondary { background:transparent; border-color:var(--border); color:var(--text); }
+  .cta-btn.secondary:hover { border-color:var(--accent3); color:var(--accent3); }
 
   /* ── Status Bar ── */
   #statusbar {
-    height: var(--statusbar-h); background: var(--panel);
-    border-top: 1.5px solid var(--border);
-    display: flex; align-items: center; padding: 0 12px; gap: 16px; flex-shrink: 0;
+    height:var(--statusbar-h); background:var(--panel); border-top:1.5px solid var(--border);
+    display:flex; align-items:center; padding:0 12px; gap:16px; flex-shrink:0;
   }
-  .status-item {
-    font-size: 10px; color: var(--muted); letter-spacing: 0.05em;
-    display: flex; align-items: center; gap: 5px;
-  }
-  .status-item .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); }
-  .status-item.ready .dot { background: var(--accent3); }
-  .status-item.warn  .dot { background: var(--accent); }
+  .status-item { font-size:10px; color:var(--muted); letter-spacing:.05em; display:flex; align-items:center; gap:5px; }
+  .status-item .dot { width:6px; height:6px; border-radius:50%; background:var(--muted); }
+  .status-item.ready .dot { background:var(--accent3); }
+  .status-item.warn  .dot { background:var(--accent); }
 
-  /* ── Text Label Overlay Input ── */
+  /* ── Label Overlay ── */
   #label-overlay {
     display: none;
     position: absolute;
     z-index: 50;
-    /* positioned by JS */
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
   }
-  #label-overlay.open { display: flex; flex-direction: column; align-items: flex-start; gap: 0; }
+  #label-overlay.open { display: flex; }
 
   #label-input {
     font-family: 'DM Mono', monospace;
     font-weight: 500;
-    background: rgba(0,0,0,0.55);
+    background: rgba(0,0,0,0.65);
     color: #fff;
     border: 2px solid var(--accent3);
-    border-radius: 6px 6px 6px 0;
-    padding: 6px 32px 6px 8px;
+    border-bottom: none;
+    border-radius: 6px 6px 0 0;
+    padding: 6px 10px;
     outline: none;
     min-width: 120px;
-    max-width: 260px;
-    /* font-size set by JS */
+    max-width: 72vw;
     line-height: 1.3;
     backdrop-filter: blur(4px);
     resize: none;
     overflow: hidden;
     white-space: pre;
+    display: block;
+    width: 120px;
   }
 
   #label-confirm {
-    position: absolute;
-    top: -1px; right: -1px;
-    width: 28px; height: 28px;
+    width: 100%;
+    height: 36px;
     background: var(--accent3);
-    border: none; border-radius: 0 6px 0 6px;
-    color: #1a1a1f; font-size: 14px;
-    cursor: pointer; display: flex;
-    align-items: center; justify-content: center;
+    border: none;
+    border-radius: 0 0 6px 6px;
+    color: #1a1a1f;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-weight: bold;
-    transition: filter 0.15s;
+    transition: filter .15s;
+    flex-shrink: 0;
   }
-  #label-confirm:hover { filter: brightness(1.2); }
+  #label-confirm:hover { filter:brightness(1.2); }
 
   /* ── Camera Modal ── */
   #camera-modal {
-    display: none; position: fixed; inset: 0;
-    background: rgba(0,0,0,0.88); z-index: 100;
-    flex-direction: column; align-items: center;
-    justify-content: center; gap: 16px; padding: 20px;
+    display:none; position:fixed; inset:0; background:rgba(0,0,0,.88);
+    z-index:100; flex-direction:column; align-items:center;
+    justify-content:center; gap:16px; padding:20px;
   }
-  #camera-modal.open { display: flex; }
-  #camera-modal h3 {
-    font-family: 'Syne', sans-serif; font-size: 16px;
-    font-weight: 800; letter-spacing: 0.06em; color: var(--accent);
-  }
-  #video-preview {
-    width: 100%; max-width: 480px; aspect-ratio: 4/3;
-    border-radius: 12px; background: #000;
-    border: 1.5px solid var(--border); object-fit: cover; display: block;
-  }
-  .modal-actions { display: flex; gap: 12px; align-items: center; }
-  .modal-btn {
-    padding: 12px 24px; border-radius: 8px; border: 1.5px solid;
-    font-family: 'DM Mono', monospace; font-size: 13px;
-    cursor: pointer; letter-spacing: 0.04em; transition: all 0.2s;
-  }
-  .modal-btn.snap {
-    background: var(--accent); border-color: var(--accent); color: #1a1a1f;
-    font-weight: 600; font-size: 22px; width: 62px; height: 62px;
-    border-radius: 50%; padding: 0;
-    display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 0 20px color-mix(in srgb, var(--accent) 40%, transparent);
-  }
-  .modal-btn.snap:hover { filter: brightness(1.15); transform: scale(1.05); }
-  .modal-btn.cancel { background: transparent; border-color: var(--border); color: var(--text); }
-  .modal-btn.cancel:hover { border-color: var(--accent2); color: var(--accent2); }
-  #camera-msg { font-size: 11px; color: var(--muted); text-align: center; }
-  #capture-canvas { display: none; }
+  #camera-modal.open { display:flex; }
+  #camera-modal h3 { font-family:'Syne',sans-serif; font-size:16px; font-weight:800; letter-spacing:.06em; color:var(--accent); }
+  #video-preview { width:100%; max-width:480px; aspect-ratio:4/3; border-radius:12px; background:#000; border:1.5px solid var(--border); object-fit:cover; display:block; }
+  .modal-actions { display:flex; gap:12px; align-items:center; }
+  .modal-btn { padding:12px 24px; border-radius:8px; border:1.5px solid; font-family:'DM Mono',monospace; font-size:13px; cursor:pointer; letter-spacing:.04em; transition:all .2s; }
+  .modal-btn.snap { background:var(--accent); border-color:var(--accent); color:#1a1a1f; font-weight:600; font-size:22px; width:62px; height:62px; border-radius:50%; padding:0; display:flex; align-items:center; justify-content:center; box-shadow:0 0 20px color-mix(in srgb,var(--accent) 40%,transparent); }
+  .modal-btn.snap:hover { filter:brightness(1.15); transform:scale(1.05); }
+  .modal-btn.cancel { background:transparent; border-color:var(--border); color:var(--text); }
+  .modal-btn.cancel:hover { border-color:var(--accent2); color:var(--accent2); }
+  #camera-msg { font-size:11px; color:var(--muted); text-align:center; }
+  #capture-canvas { display:none; }
 
-  @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-  .flash {
-    position: fixed; inset: 0; z-index: 200;
-    background: #fff; pointer-events: none;
-    animation: flashAnim 0.3s ease-out forwards;
-  }
-  @keyframes flashAnim { 0% { opacity:.9; } 100% { opacity:0; } }
+  @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+  .flash { position:fixed; inset:0; z-index:200; background:#fff; pointer-events:none; animation:flashAnim .3s ease-out forwards; }
+  @keyframes flashAnim { 0%{opacity:.9} 100%{opacity:0} }
 </style>
 </head>
 <body>
 
-<!-- Title Bar -->
 <div id="titlebar">
   <span class="logo">✦ PIXEDIT</span>
   <span class="sep"></span>
   <span class="filename" id="filename-label">尚未載入影像</span>
 </div>
 
-<!-- ═══ Row 1 ═══ -->
+<!-- Row 1 -->
 <div class="toolbar-row" id="toolbar-row1">
-
-  <!-- 拍照 / 讀檔 / 存檔 -->
   <div class="tool-group">
-    <button class="tool-btn" id="btn-camera" onclick="openCamera()">
-      📷<span class="label">拍照</span>
-    </button>
-    <button class="tool-btn" onclick="openFile()">
-      🗂️<span class="label">讀檔</span>
-    </button>
-    <button class="tool-btn" onclick="saveImage()">
-      💾<span class="label">存檔</span>
-    </button>
+    <button class="tool-btn" id="btn-camera" onclick="openCamera()">📷<span class="label">拍照</span></button>
+    <button class="tool-btn" onclick="openFile()">🗂️<span class="label">讀檔</span></button>
+    <button class="tool-btn" onclick="saveImage()">💾<span class="label">存檔</span></button>
   </div>
-
-  <!-- 鉛筆 -->
   <div class="tool-group">
-    <button class="tool-btn active" id="tool-pencil" onclick="setTool('pencil')">
-      ✏️<span class="label">鉛筆</span>
-    </button>
+    <button class="tool-btn active" id="tool-pencil" onclick="setTool('pencil')">✏️<span class="label">鉛筆</span></button>
   </div>
-
-  <!-- 鉛筆顏色 -->
   <div class="tool-group" style="position:relative;">
     <button class="color-btn" id="btn-color-pencil" onclick="togglePopup('color-popup-pencil')">
       <div class="color-swatch-inner" id="swatch-pencil" style="background:#e8000d"></div>
       <span class="label">顏色</span>
     </button>
-    <input type="color" id="color-input-pencil" value="#e8000d"
-           oninput="applyCustomColor('pencil', this.value)">
+    <input type="color" id="color-input-pencil" value="#e8000d" oninput="applyCustomColor('pencil',this.value)">
     <div class="color-popup" id="color-popup-pencil">
       <div class="palette-grid" id="palette-pencil"></div>
       <div class="palette-divider"></div>
       <button class="palette-custom-btn" onclick="openCustomColor('pencil')">🎨 自訂顏色</button>
     </div>
   </div>
-
-  <!-- 粗細 20/25/30/35 -->
   <div class="tool-group">
-    <button class="size-btn active" id="size-1" onclick="setBrushSize(20,1)">
-      <div class="size-dot" style="width:8px;height:8px"></div>
-      <span class="label">20</span>
-    </button>
-    <button class="size-btn" id="size-2" onclick="setBrushSize(25,2)">
-      <div class="size-dot" style="width:11px;height:11px"></div>
-      <span class="label">25</span>
-    </button>
-    <button class="size-btn" id="size-3" onclick="setBrushSize(30,3)">
-      <div class="size-dot" style="width:15px;height:15px"></div>
-      <span class="label">30</span>
-    </button>
-    <button class="size-btn" id="size-4" onclick="setBrushSize(35,4)">
-      <div class="size-dot" style="width:19px;height:19px"></div>
-      <span class="label">35</span>
-    </button>
+    <button class="size-btn active" id="size-1" onclick="setBrushSize(20,1)"><div class="size-dot" style="width:8px;height:8px"></div><span class="label">20</span></button>
+    <button class="size-btn" id="size-2" onclick="setBrushSize(25,2)"><div class="size-dot" style="width:11px;height:11px"></div><span class="label">25</span></button>
+    <button class="size-btn" id="size-3" onclick="setBrushSize(30,3)"><div class="size-dot" style="width:15px;height:15px"></div><span class="label">30</span></button>
+    <button class="size-btn" id="size-4" onclick="setBrushSize(35,4)"><div class="size-dot" style="width:19px;height:19px"></div><span class="label">35</span></button>
   </div>
-
-  <!-- 返回 / 前進 -->
   <div class="tool-group">
-    <button class="tool-btn" id="btn-undo" onclick="undoAction()" disabled>
-      ↩️<span class="label">返回</span>
-    </button>
-    <button class="tool-btn" id="btn-redo" onclick="redoAction()" disabled>
-      ↪️<span class="label">前進</span>
-    </button>
+    <button class="tool-btn" id="btn-undo" onclick="undoAction()" disabled>↩️<span class="label">返回</span></button>
+    <button class="tool-btn" id="btn-redo" onclick="redoAction()" disabled>↪️<span class="label">前進</span></button>
   </div>
-
 </div>
 
-<!-- ═══ Row 2 ═══ -->
+<!-- Row 2 -->
 <div class="toolbar-row" id="toolbar-row2">
-
-  <!-- 數字標籤工具 -->
   <div class="tool-group">
-    <button class="tool-btn" id="tool-label" onclick="setTool('label')">
-      🔢<span class="label">標籤</span>
-    </button>
+    <button class="tool-btn" id="tool-label" onclick="setTool('label')">🔢<span class="label">標籤</span></button>
   </div>
-
-  <!-- 字體大小 -->
   <div class="tool-group">
-    <button class="fsize-btn active" id="fsize-1" onclick="setFontSize(32,1)">
-      <span class="fsize-preview" style="font-size:10px">A</span>
-      <span class="label">小</span>
-    </button>
-    <button class="fsize-btn" id="fsize-2" onclick="setFontSize(48,2)">
-      <span class="fsize-preview" style="font-size:13px">A</span>
-      <span class="label">中</span>
-    </button>
-    <button class="fsize-btn" id="fsize-3" onclick="setFontSize(64,3)">
-      <span class="fsize-preview" style="font-size:16px">A</span>
-      <span class="label">大</span>
-    </button>
-    <button class="fsize-btn" id="fsize-4" onclick="setFontSize(96,4)">
-      <span class="fsize-preview" style="font-size:20px">A</span>
-      <span class="label">特大</span>
-    </button>
+    <button class="fsize-btn active" id="fsize-1" onclick="setFontSize(32,1)"><span class="fsize-preview" style="font-size:10px">A</span><span class="label">小</span></button>
+    <button class="fsize-btn" id="fsize-2" onclick="setFontSize(48,2)"><span class="fsize-preview" style="font-size:13px">A</span><span class="label">中</span></button>
+    <button class="fsize-btn" id="fsize-3" onclick="setFontSize(64,3)"><span class="fsize-preview" style="font-size:16px">A</span><span class="label">大</span></button>
+    <button class="fsize-btn" id="fsize-4" onclick="setFontSize(96,4)"><span class="fsize-preview" style="font-size:20px">A</span><span class="label">特大</span></button>
   </div>
-
-  <!-- 標籤顏色（獨立，不影響鉛筆色） -->
   <div class="tool-group" style="position:relative;">
     <button class="color-btn" id="btn-color-label" onclick="togglePopup('color-popup-label')">
       <div class="color-swatch-inner" id="swatch-label" style="background:#ffffff"></div>
       <span class="label">顏色</span>
     </button>
-    <input type="color" id="color-input-label" value="#ffffff"
-           oninput="applyCustomColor('label', this.value)">
+    <input type="color" id="color-input-label" value="#ffffff" oninput="applyCustomColor('label',this.value)">
     <div class="color-popup" id="color-popup-label">
       <div class="palette-grid" id="palette-label"></div>
       <div class="palette-divider"></div>
       <button class="palette-custom-btn" onclick="openCustomColor('label')">🎨 自訂顏色</button>
     </div>
   </div>
-
 </div>
 
 <!-- Canvas Area -->
@@ -512,26 +342,21 @@
   </div>
   <canvas id="main-canvas"></canvas>
 
-  <!-- Label floating input -->
+  <!-- Label input overlay -->
   <div id="label-overlay">
-    <input id="label-input" type="text" placeholder="輸入數字或文字…"
+    <input id="label-input" type="text" placeholder="輸入數字…"
            autocomplete="off" autocorrect="off" spellcheck="false"
            oninput="autoResizeInput(this)">
-    <button id="label-confirm" onclick="confirmLabel()">✓</button>
+    <button id="label-confirm" onclick="confirmLabel()">✓ 確認</button>
   </div>
 </div>
 
-<!-- Status Bar -->
 <div id="statusbar">
-  <div class="status-item ready" id="status-state">
-    <div class="dot"></div>
-    <span id="status-text">就緒</span>
-  </div>
+  <div class="status-item ready" id="status-state"><div class="dot"></div><span id="status-text">就緒</span></div>
   <div class="status-item"><span id="dim-text">—</span></div>
   <div class="status-item"><span id="tool-text">工具：鉛筆</span></div>
 </div>
 
-<!-- Camera Modal -->
 <div id="camera-modal">
   <h3>📷 相機預覽</h3>
   <video id="video-preview" autoplay playsinline muted></video>
@@ -547,62 +372,52 @@
 <input type="file" id="file-input" accept="image/*" style="display:none" onchange="loadImageFile(event)">
 
 <script>
-// ════════════════════════════════════════════════════
-//  PALETTE COLORS (shared)
-// ════════════════════════════════════════════════════
+// ═══════════════════════════════════════
+//  PALETTE
+// ═══════════════════════════════════════
 const PALETTE = [
   '#000000','#ffffff','#888888','#cccccc','#4a4a4a','#2b2b2b',
   '#e8000d','#ff6b35','#ffcc00','#00c851','#007bff','#00bcd4',
   '#e91e63','#9c27b0','#8bc34a','#ff5722','#795548','#607d8b'
 ];
-
-function buildPalette(gridId, context) {
+function buildPalette(gridId, ctx) {
   const grid = document.getElementById(gridId);
   PALETTE.forEach(hex => {
     const el = document.createElement('div');
     el.className = 'palette-swatch';
     el.style.background = hex;
-    el.addEventListener('pointerdown', e => { e.stopPropagation(); pickColor(context, hex); });
+    el.addEventListener('pointerdown', e => { e.stopPropagation(); pickColor(ctx, hex); });
     grid.appendChild(el);
   });
 }
 
-// ════════════════════════════════════════════════════
+// ═══════════════════════════════════════
 //  STATE
-// ════════════════════════════════════════════════════
+// ═══════════════════════════════════════
 const canvas    = document.getElementById('main-canvas');
 const ctx       = canvas.getContext('2d');
 let imageLoaded = false;
 let currentTool = 'pencil';
 
-// pencil
 let brushColor  = '#e8000d';
 let brushSize   = 20;
 let isDrawing   = false;
 let lastX = 0, lastY = 0;
 
-// label
 let labelColor  = '#ffffff';
 let labelFontPx = 32;
-let pendingLabel = null;  // { canvasX, canvasY }
+let pendingLabel = null;
 
-// history
 const MAX_HISTORY = 30;
 let undoStack = [], redoStack = [];
+let currentStream = null, facingMode = 'environment';
 
-// camera
-let currentStream = null;
-let facingMode    = 'environment';
-
-// ════════════════════════════════════════════════════
-//  INIT
-// ════════════════════════════════════════════════════
 buildPalette('palette-pencil', 'pencil');
 buildPalette('palette-label',  'label');
 
-// ════════════════════════════════════════════════════
+// ═══════════════════════════════════════
 //  HISTORY
-// ════════════════════════════════════════════════════
+// ═══════════════════════════════════════
 function saveHistory() {
   undoStack.push(canvas.toDataURL());
   if (undoStack.length > MAX_HISTORY) undoStack.shift();
@@ -633,45 +448,37 @@ async function redoAction() {
   updateHistoryBtns(); setStatus('已前進下一步','ready');
 }
 
-// ════════════════════════════════════════════════════
-//  TOOL SELECTION
-// ════════════════════════════════════════════════════
+// ═══════════════════════════════════════
+//  TOOLS
+// ═══════════════════════════════════════
 function setTool(name) {
   currentTool = name;
-  cancelLabel(); // close any open label input
-
+  cancelLabel();
   document.querySelectorAll('.tool-btn[id^="tool-"]').forEach(b => b.classList.remove('active'));
   const btn = document.getElementById('tool-' + name);
   if (btn) btn.classList.add('active');
-
   const labels = { pencil:'鉛筆', label:'數字標籤' };
   document.getElementById('tool-text').textContent = '工具：' + (labels[name] || name);
-
-  if (name === 'label') {
-    canvas.style.cursor = 'cell';
-    setStatus('點選照片任意位置以新增標籤', 'ready');
-  } else {
-    canvas.style.cursor = 'crosshair';
-  }
+  canvas.style.cursor = name === 'label' ? 'cell' : 'crosshair';
+  if (name === 'label') setStatus('點選照片任意位置新增標籤','ready');
 }
 
-// ════════════════════════════════════════════════════
+// ═══════════════════════════════════════
 //  BRUSH SIZE
-// ════════════════════════════════════════════════════
+// ═══════════════════════════════════════
 function setBrushSize(px, idx) {
   brushSize = px;
   document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('size-' + idx).classList.add('active');
 }
 
-// ════════════════════════════════════════════════════
+// ═══════════════════════════════════════
 //  FONT SIZE
-// ════════════════════════════════════════════════════
+// ═══════════════════════════════════════
 function setFontSize(px, idx) {
   labelFontPx = px;
   document.querySelectorAll('.fsize-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('fsize-' + idx).classList.add('active');
-  // update live if input is open
   const inp = document.getElementById('label-input');
   if (document.getElementById('label-overlay').classList.contains('open')) {
     inp.style.fontSize = labelFontPx + 'px';
@@ -679,17 +486,13 @@ function setFontSize(px, idx) {
   }
 }
 
-// ════════════════════════════════════════════════════
+// ═══════════════════════════════════════
 //  COLOR
-// ════════════════════════════════════════════════════
+// ═══════════════════════════════════════
 function togglePopup(id) {
-  // close all other popups first
-  document.querySelectorAll('.color-popup').forEach(p => {
-    if (p.id !== id) p.classList.remove('open');
-  });
+  document.querySelectorAll('.color-popup').forEach(p => { if (p.id !== id) p.classList.remove('open'); });
   document.getElementById(id).classList.toggle('open');
 }
-
 function pickColor(context, hex) {
   if (context === 'pencil') {
     brushColor = hex;
@@ -699,129 +502,98 @@ function pickColor(context, hex) {
     labelColor = hex;
     document.getElementById('swatch-label').style.background = hex;
     highlightSwatch('palette-label', hex);
-    // update live if open
     document.getElementById('label-input').style.color = hex;
   }
-  // close popup
   document.querySelectorAll('.color-popup').forEach(p => p.classList.remove('open'));
 }
-
 function applyCustomColor(context, hex) {
   if (context === 'pencil') {
     brushColor = hex;
     document.getElementById('swatch-pencil').style.background = hex;
-    clearSwatchSelection('palette-pencil');
+    clearSwatchSel('palette-pencil');
   } else {
     labelColor = hex;
     document.getElementById('swatch-label').style.background = hex;
-    clearSwatchSelection('palette-label');
+    clearSwatchSel('palette-label');
     document.getElementById('label-input').style.color = hex;
   }
 }
-
 function openCustomColor(context) {
   const inp = document.getElementById('color-input-' + context);
   inp.value = context === 'pencil' ? brushColor : labelColor;
   inp.click();
   document.querySelectorAll('.color-popup').forEach(p => p.classList.remove('open'));
 }
-
 function highlightSwatch(gridId, hex) {
-  const grid = document.getElementById(gridId);
-  grid.querySelectorAll('.palette-swatch').forEach(s => {
-    s.classList.toggle('selected', s.style.background === hex || normHex(s.style.background) === hex.toLowerCase());
+  document.getElementById(gridId).querySelectorAll('.palette-swatch').forEach(s => {
+    s.classList.toggle('selected', normHex(s.style.background) === hex.toLowerCase());
   });
 }
-
-function clearSwatchSelection(gridId) {
+function clearSwatchSel(gridId) {
   document.getElementById(gridId).querySelectorAll('.palette-swatch').forEach(s => s.classList.remove('selected'));
 }
-
-function normHex(cssColor) {
-  // convert rgb(r,g,b) back to #rrggbb for comparison
-  const m = cssColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
-  if (!m) return cssColor;
+function normHex(css) {
+  const m = css.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+  if (!m) return css.toLowerCase();
   return '#' + [m[1],m[2],m[3]].map(n => (+n).toString(16).padStart(2,'0')).join('');
 }
-
-// Close all popups when clicking outside
 document.addEventListener('pointerdown', e => {
   document.querySelectorAll('.color-popup.open').forEach(p => {
     const btnId = p.id === 'color-popup-pencil' ? 'btn-color-pencil' : 'btn-color-label';
-    if (!p.contains(e.target) && !document.getElementById(btnId).contains(e.target)) {
+    if (!p.contains(e.target) && !document.getElementById(btnId).contains(e.target))
       p.classList.remove('open');
-    }
   });
 });
 
-// ════════════════════════════════════════════════════
-//  DRAWING (pencil)
-// ════════════════════════════════════════════════════
+// ═══════════════════════════════════════
+//  DRAWING
+// ═══════════════════════════════════════
 function getCanvasPos(e) {
-  const rect   = canvas.getBoundingClientRect();
-  const scaleX = canvas.width  / rect.width;
-  const scaleY = canvas.height / rect.height;
-  const src    = e.touches ? e.touches[0] : e;
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = canvas.width / rect.width, scaleY = canvas.height / rect.height;
+  const src = e.touches ? e.touches[0] : e;
   return [(src.clientX - rect.left) * scaleX, (src.clientY - rect.top) * scaleY];
 }
 
 canvas.addEventListener('pointerdown', e => {
   if (!imageLoaded) return;
-
-  if (currentTool === 'label') {
-    e.preventDefault();
-    openLabelAt(e);
-    return;
-  }
-
+  if (currentTool === 'label') { e.preventDefault(); openLabelAt(e); return; }
   if (currentTool === 'pencil') {
     e.preventDefault();
     saveHistory();
     isDrawing = true;
     [lastX, lastY] = getCanvasPos(e);
-    ctx.beginPath();
-    ctx.arc(lastX, lastY, brushSize / 2, 0, Math.PI * 2);
-    ctx.fillStyle = brushColor;
-    ctx.fill();
+    ctx.beginPath(); ctx.arc(lastX, lastY, brushSize/2, 0, Math.PI*2);
+    ctx.fillStyle = brushColor; ctx.fill();
   }
 });
-
 canvas.addEventListener('pointermove', e => {
   if (!isDrawing || currentTool !== 'pencil') return;
   e.preventDefault();
-  const [x, y] = getCanvasPos(e);
-  ctx.beginPath();
-  ctx.moveTo(lastX, lastY);
-  ctx.lineTo(x, y);
-  ctx.strokeStyle = brushColor;
-  ctx.lineWidth   = brushSize;
-  ctx.lineCap     = 'round';
-  ctx.lineJoin    = 'round';
-  ctx.stroke();
-  [lastX, lastY] = [x, y];
+  const [x,y] = getCanvasPos(e);
+  ctx.beginPath(); ctx.moveTo(lastX,lastY); ctx.lineTo(x,y);
+  ctx.strokeStyle = brushColor; ctx.lineWidth = brushSize;
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.stroke();
+  [lastX,lastY] = [x,y];
 });
-
 canvas.addEventListener('pointerup',  () => { isDrawing = false; });
 canvas.addEventListener('pointerout', () => { isDrawing = false; });
 
-// ════════════════════════════════════════════════════
+// ═══════════════════════════════════════
 //  LABEL TOOL
-// ════════════════════════════════════════════════════
+// ═══════════════════════════════════════
 function openLabelAt(e) {
-  const rect    = canvas.getBoundingClientRect();
-  const src     = e.touches ? e.touches[0] : e;
-  // position inside canvas-area (which is the overlay's offsetParent)
-  const areaRect = document.getElementById('canvas-area').getBoundingClientRect();
-  const overlayX = src.clientX - areaRect.left;
-  const overlayY = src.clientY - areaRect.top;
+  const canvasRect = canvas.getBoundingClientRect();
+  const areaEl     = document.getElementById('canvas-area');
+  const areaRect   = areaEl.getBoundingClientRect();
+  const src        = e.touches ? e.touches[0] : e;
 
-  // canvas coordinates (for drawing later)
-  const scaleX = canvas.width  / rect.width;
-  const scaleY = canvas.height / rect.height;
-  const canvasX = (src.clientX - rect.left) * scaleX;
-  const canvasY = (src.clientY - rect.top)  * scaleY;
-
-  pendingLabel = { canvasX, canvasY };
+  // Canvas pixel coords (for rendering text later)
+  const scaleX  = canvas.width  / canvasRect.width;
+  const scaleY  = canvas.height / canvasRect.height;
+  const canvasX = (src.clientX - canvasRect.left) * scaleX;
+  const canvasY = (src.clientY - canvasRect.top)  * scaleY;
+  pendingLabel  = { canvasX, canvasY };
 
   const overlay = document.getElementById('label-overlay');
   const inp     = document.getElementById('label-input');
@@ -829,10 +601,25 @@ function openLabelAt(e) {
   inp.value          = '';
   inp.style.fontSize = labelFontPx + 'px';
   inp.style.color    = labelColor;
-  inp.style.width    = '120px';
+  inp.style.width    = '140px';
 
-  overlay.style.left = overlayX + 'px';
-  overlay.style.top  = (overlayY - 4) + 'px';
+  // Desired top-left = tap point relative to canvas-area
+  let x = src.clientX - areaRect.left;
+  let y = src.clientY - areaRect.top;
+
+  // Estimate overlay size: width ~140px, height = input line + confirm 36px
+  const estW = 160;
+  const estH = labelFontPx * 1.5 + 20 + 36 + 4; // padding + confirm btn
+  const MARGIN = 10;
+
+  // Clamp to stay inside canvas-area
+  x = Math.min(x, areaRect.width  - estW - MARGIN);
+  y = Math.min(y, areaRect.height - estH - MARGIN);
+  x = Math.max(x, MARGIN);
+  y = Math.max(y, MARGIN);
+
+  overlay.style.left = x + 'px';
+  overlay.style.top  = y + 'px';
   overlay.classList.add('open');
 
   setTimeout(() => inp.focus(), 50);
@@ -847,12 +634,11 @@ function confirmLabel() {
     ctx.font         = `500 ${labelFontPx}px "DM Mono", monospace`;
     ctx.fillStyle    = labelColor;
     ctx.textBaseline = 'top';
-    // optional: light shadow for readability
-    ctx.shadowColor  = 'rgba(0,0,0,0.55)';
-    ctx.shadowBlur   = 4;
+    ctx.shadowColor  = 'rgba(0,0,0,0.6)';
+    ctx.shadowBlur   = 5;
     ctx.fillText(text, canvasX, canvasY);
     ctx.shadowBlur   = 0;
-    setStatus('已加入標籤', 'ready');
+    setStatus('已加入標籤','ready');
   }
   cancelLabel();
 }
@@ -863,34 +649,33 @@ function cancelLabel() {
   pendingLabel = null;
 }
 
-// Confirm on Enter, cancel on Escape
 document.getElementById('label-input').addEventListener('keydown', e => {
   if (e.key === 'Enter')  { e.preventDefault(); confirmLabel(); }
   if (e.key === 'Escape') { e.preventDefault(); cancelLabel(); }
 });
 
-// Click outside the overlay while label tool active → cancel (not move)
+// Click outside overlay while label tool active → cancel first, then re-open
 document.getElementById('canvas-area').addEventListener('pointerdown', e => {
   const overlay = document.getElementById('label-overlay');
   if (overlay.classList.contains('open') && !overlay.contains(e.target)) {
     cancelLabel();
-    // if still on label tool, re-open at new position handled by canvas pointerdown
   }
 }, true);
 
 function autoResizeInput(inp) {
-  // grow width with content
   const tmp = document.createElement('span');
-  tmp.style.cssText = `font:${inp.style.fontSize} "DM Mono",monospace;position:absolute;visibility:hidden;white-space:pre`;
-  tmp.textContent = inp.value || inp.placeholder;
+  tmp.style.cssText = `font:500 ${inp.style.fontSize} "DM Mono",monospace;position:absolute;visibility:hidden;white-space:pre`;
+  tmp.textContent   = inp.value || inp.placeholder;
   document.body.appendChild(tmp);
-  inp.style.width = Math.max(120, tmp.offsetWidth + 32) + 'px';
+  const newW = Math.max(140, Math.min(tmp.offsetWidth + 28, window.innerWidth * 0.72));
+  inp.style.width = newW + 'px';
+  document.getElementById('label-confirm').style.width = newW + 'px';
   document.body.removeChild(tmp);
 }
 
-// ════════════════════════════════════════════════════
+// ═══════════════════════════════════════
 //  CAMERA
-// ════════════════════════════════════════════════════
+// ═══════════════════════════════════════
 async function openCamera() {
   document.getElementById('camera-modal').classList.add('open');
   await startStream();
@@ -899,7 +684,7 @@ async function startStream() {
   if (currentStream) stopStream();
   try {
     currentStream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode, width:{ideal:1920}, height:{ideal:1080} }, audio:false
+      video:{ facingMode, width:{ideal:1920}, height:{ideal:1080} }, audio:false
     });
     document.getElementById('video-preview').srcObject = currentStream;
     document.getElementById('camera-msg').textContent = '對準目標後按下快門';
@@ -922,28 +707,24 @@ async function switchCamera() {
 function capturePhoto() {
   const video = document.getElementById('video-preview');
   const cap   = document.getElementById('capture-canvas');
-  cap.width   = video.videoWidth  || 1280;
+  cap.width   = video.videoWidth || 1280;
   cap.height  = video.videoHeight || 720;
   cap.getContext('2d').drawImage(video, 0, 0, cap.width, cap.height);
   const flash = document.createElement('div'); flash.className='flash';
-  document.body.appendChild(flash); setTimeout(()=>flash.remove(), 400);
+  document.body.appendChild(flash); setTimeout(()=>flash.remove(),400);
   const img = new Image();
-  img.onload = () => { loadImageToCanvas(img, 'camera_'+Date.now()+'.jpg'); closeCamera(); };
-  img.src = cap.toDataURL('image/jpeg', 0.95);
+  img.onload = () => { loadImageToCanvas(img,'camera_'+Date.now()+'.jpg'); closeCamera(); };
+  img.src = cap.toDataURL('image/jpeg',0.95);
 }
 
-// ════════════════════════════════════════════════════
+// ═══════════════════════════════════════
 //  FILE I/O
-// ════════════════════════════════════════════════════
+// ═══════════════════════════════════════
 function openFile() { document.getElementById('file-input').click(); }
 function loadImageFile(e) {
   const file = e.target.files[0]; if (!file) return;
   const reader = new FileReader();
-  reader.onload = ev => {
-    const img = new Image();
-    img.onload = () => loadImageToCanvas(img, file.name);
-    img.src = ev.target.result;
-  };
+  reader.onload = ev => { const img=new Image(); img.onload=()=>loadImageToCanvas(img,file.name); img.src=ev.target.result; };
   reader.readAsDataURL(file); e.target.value='';
 }
 function loadImageToCanvas(img, name) {
@@ -954,30 +735,26 @@ function loadImageToCanvas(img, name) {
   document.getElementById('empty-state').style.display = 'none';
   document.getElementById('filename-label').textContent = name;
   document.getElementById('dim-text').textContent = canvas.width+' × '+canvas.height+' px';
-  imageLoaded = true;
-  undoStack=[]; redoStack=[];
-  updateHistoryBtns();
-  setTool('pencil');
-  setStatus('影像已載入','ready');
+  imageLoaded = true; undoStack=[]; redoStack=[];
+  updateHistoryBtns(); setTool('pencil'); setStatus('影像已載入','ready');
 }
 function saveImage() {
   if (!imageLoaded) { setStatus('⚠️ 尚未載入影像','warn'); return; }
   const link = document.createElement('a');
   link.download = 'pixedit_'+Date.now()+'.png';
-  link.href = canvas.toDataURL('image/png');
-  link.click();
+  link.href = canvas.toDataURL('image/png'); link.click();
   setStatus('已儲存影像','ready');
 }
 
-// ════════════════════════════════════════════════════
+// ═══════════════════════════════════════
 //  STATUS
-// ════════════════════════════════════════════════════
+// ═══════════════════════════════════════
 function setStatus(msg, type='ready') {
   document.getElementById('status-state').className = 'status-item '+type;
   document.getElementById('status-text').textContent = msg;
 }
 
-document.addEventListener('touchmove', e => e.preventDefault(), { passive:false });
+document.addEventListener('touchmove', e=>e.preventDefault(), {passive:false});
 </script>
 </body>
 </html>
