@@ -415,8 +415,7 @@
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
   .ai-key-row label { font-size: 0.78rem; color: var(--muted); white-space: nowrap; }
-
-  /* ════════════════════════════════════
+/* ════════════════════════════════════
      PHOTO EDITOR SECTION
   ════════════════════════════════════ */
   #photoEditorSection {
@@ -587,221 +586,28 @@
   }
   #pe-label-confirm:hover { filter: brightness(1.15); }
 
-  /* ── Float label (DOM + GPU transform) ── */
+
+  /* ── Float label active ── */
   #pe-float-active {
-    position: absolute; z-index: 40;
-    display: flex; align-items: center; gap: 4px;
+    position: absolute; left: 0; top: 0;
+    z-index: 40; display: none;
+    align-items: center; gap: 4px;
     touch-action: none; will-change: transform;
     pointer-events: auto; user-select: none;
-    left: 0; top: 0;
   }
 
-  /* ── 獨立固定按鈕（四角迴避，DOM層） ── */
+  /* ── 獨立固定按鈕（四角迴避） ── */
   #pe-pin-btn {
-    display: none;
-    position: absolute; z-index: 45;
+    display: none; position: absolute; z-index: 45;
     height: 34px; padding: 0 14px;
     background: var(--accent); border: none; border-radius: 8px;
     color: #111; font-size: 13px; font-weight: 700; cursor: pointer;
-    white-space: nowrap;
-    font-family: 'Noto Sans TC', sans-serif;
+    white-space: nowrap; font-family: 'Noto Sans TC', sans-serif;
     box-shadow: 0 3px 10px rgba(0,0,0,.5);
-    transition: filter .15s, transform .15s;
-    pointer-events: auto;
+    transition: filter .15s, transform .15s; pointer-events: auto;
   }
   #pe-pin-btn.active { display: block; }
   #pe-pin-btn:hover  { filter: brightness(1.15); transform: scale(1.05); }
-
-  /* ── Crop Modal ── */
-  #pe-crop-modal {
-    display: none; position: fixed; inset: 0;
-    background: rgba(0,0,0,.92); z-index: 2100;
-    flex-direction: column; align-items: center;
-    justify-content: center; gap: 12px; padding: 16px;
-  }
-  #pe-crop-modal.open { display: flex; }
-  #pe-crop-modal h3 { font-size: 1rem; font-weight: 700; color: var(--accent); flex-shrink: 0; }
-  #pe-crop-modal p  { font-size: 0.8rem; color: var(--muted); flex-shrink: 0; text-align: center; }
-
-  #pe-crop-wrap {
-    position: relative;
-    flex-shrink: 1;
-    overflow: hidden;
-    touch-action: none;
-    cursor: default;
-  }
-  #pe-crop-img {
-    display: block;
-    max-width: 100%;
-    max-height: calc(100dvh - 190px);
-    pointer-events: none;
-    user-select: none;
-    -webkit-user-drag: none;
-  }
-
-  /* dark mask — 4 rects drawn via clip-path in JS, we use canvas overlay instead */
-  #pe-crop-mask {
-    position: absolute; inset: 0;
-    pointer-events: none;
-  }
-
-  /* the bright selection frame */
-  #pe-crop-sel {
-    position: absolute;
-    border: 2px solid var(--accent);
-    box-sizing: border-box;
-    pointer-events: none;   /* frame itself non-interactive */
-  }
-
-  /* 8 handles: 4 corners + 4 edges */
-  .pch {
-    position: absolute;
-    width: 28px; height: 28px;
-    background: var(--accent);
-    border-radius: 4px;
-    transform: translate(-50%, -50%);
-    touch-action: none;
-    pointer-events: all;    /* handles ARE interactive */
-    z-index: 10;
-  }
-  /* corner positions */
-  .pch[data-h="tl"] { top:0;   left:0;   cursor: nw-resize; }
-  .pch[data-h="tr"] { top:0;   left:100%; cursor: ne-resize; }
-  .pch[data-h="bl"] { top:100%; left:0;  cursor: sw-resize; }
-  .pch[data-h="br"] { top:100%; left:100%;cursor: se-resize; }
-  /* edge positions */
-  .pch[data-h="tc"] { top:0;    left:50%; cursor: n-resize; }
-  .pch[data-h="bc"] { top:100%; left:50%; cursor: s-resize; }
-  .pch[data-h="ml"] { top:50%;  left:0;   cursor: w-resize; }
-  .pch[data-h="mr"] { top:50%;  left:100%;cursor: e-resize; }
-
-  #pe-crop-actions {
-    display: flex; gap: 10px; flex-wrap: wrap;
-    justify-content: center; flex-shrink: 0;
-  }
-  .pe-crop-btn {
-    padding: 10px 20px; border-radius: 8px; border: 1.5px solid;
-    font-family: 'Noto Sans TC', sans-serif; font-size: 0.85rem;
-    cursor: pointer; transition: all .2s; white-space: nowrap;
-  }
-  .pe-crop-btn.confirm { background: var(--accent); border-color: var(--accent); color: #111; font-weight: 700; }
-  .pe-crop-btn.confirm:hover { filter: brightness(1.1); }
-  .pe-crop-btn.skip    { background: transparent; border-color: var(--border); color: var(--text); }
-  .pe-crop-btn.skip:hover { border-color: #5affda; color: #5affda; }
-  .pe-crop-btn.cancel  { background: transparent; border-color: var(--border); color: var(--muted); }
-  .pe-crop-btn.cancel:hover { border-color: var(--accent2); color: var(--accent2); }
-  #pe-label-input {
-    font-family: 'Space Mono', monospace; font-weight: 700;
-    background: rgba(0,0,0,.75); color: #fff;
-    border: 2px solid #5affda; border-bottom: none;
-    border-radius: 6px 6px 0 0; padding: 5px 8px; outline: none;
-    min-width: 100px; max-width: 72vw; line-height: 1.3; display: block;
-  }
-  #pe-label-confirm {
-    height: 34px; width: 100%;
-    background: #5affda; border: none; border-radius: 0 0 6px 6px;
-    color: #111; font-size: 13px; font-weight: 700; cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'Noto Sans TC', sans-serif; transition: filter .15s;
-  }
-  #pe-label-confirm:hover { filter: brightness(1.15); }
-  #pe-camera-modal {
-    display: none; position: fixed; inset: 0;
-    background: rgba(0,0,0,.92); z-index: 2000;
-    flex-direction: column; align-items: center;
-    justify-content: flex-start;
-    gap: 0; padding: 0;
-    overflow-y: auto;
-  }
-  #pe-camera-modal.open { display: flex; }
-
-  /* inner wrapper — centres content, scrollable */
-  #pe-camera-inner {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
-    padding: 16px 16px 24px;
-    width: 100%;
-    min-height: 100%;
-    justify-content: center;
-  }
-
-  #pe-camera-modal h3 { font-size: 1rem; font-weight: 700; color: var(--accent); flex-shrink: 0; }
-
-  #pe-video {
-    width: 100%;
-    max-width: 480px;
-    /* landscape: limit height so buttons stay visible */
-    max-height: calc(100dvh - 160px);
-    aspect-ratio: 4/3;
-    border-radius: 10px; background: #000;
-    border: 1.5px solid var(--border); object-fit: cover; display: block;
-    flex-shrink: 1;
-  }
-
-  /* landscape override */
-  @media (orientation: landscape) {
-    #pe-camera-inner {
-      flex-direction: row;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: center;
-      gap: 16px;
-      padding: 12px;
-    }
-    #pe-video {
-      max-width: 55vw;
-      max-height: calc(100dvh - 32px);
-      aspect-ratio: 4/3;
-    }
-    #pe-cam-side {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 12px;
-      flex-shrink: 0;
-    }
-  }
-  @media (orientation: portrait) {
-    #pe-cam-side {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 10px;
-      width: 100%;
-    }
-  }
-
-  #pe-camera-msg { font-size: 0.82rem; color: var(--muted); text-align: center; }
-  .pe-modal-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: center; }
-  .pe-modal-btn {
-    padding: 10px 18px; border-radius: 8px; border: 1.5px solid;
-    font-family: 'Noto Sans TC', sans-serif; font-size: 0.85rem;
-    cursor: pointer; transition: all .2s; white-space: nowrap;
-  }
-  .pe-modal-btn.snap {
-    background: var(--accent); border-color: var(--accent); color: #111;
-    font-weight: 700; font-size: 22px; width: 62px; height: 62px;
-    border-radius: 50%; padding: 0; flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 0 18px color-mix(in srgb, var(--accent) 40%, transparent);
-  }
-  .pe-modal-btn.snap:hover { filter: brightness(1.15); transform: scale(1.05); }
-  .pe-modal-btn.cancel { background: transparent; border-color: var(--border); color: var(--text); }
-  .pe-modal-btn.cancel:hover { border-color: var(--accent2); color: var(--accent2); }
-  #pe-capture-canvas { display: none; }
-  #pe-item-list .item-row { background: rgba(90,255,218,.04); border-left: 2px solid #5affda; padding-left: 10px; }
-  #pe-item-list .pe-seq-num {
-    font-family: 'Space Mono', monospace; font-size: 0.78rem;
-    color: #5affda; font-weight: 700; white-space: nowrap; min-width: 28px;
-  }
-  .pe-flash {
-    position: fixed; inset: 0; z-index: 3000;
-    background: #fff; pointer-events: none;
-    animation: peFlash .3s ease-out forwards;
-  }
-  @keyframes peFlash { 0%{opacity:.9} 100%{opacity:0} }
 
 </style>
 <!-- Firebase SDK -->
@@ -895,7 +701,6 @@
      PHOTO EDITOR SECTION
 ════════════════════════════════════ -->
 <div id="photoEditorSection">
-
   <div class="pe-panel">
     <div class="pe-panel-header" onclick="peTogglePanel()">
       <div class="pe-title"><span class="dot"></span><span style="color:#fff">📷 照片標記</span></div>
@@ -972,13 +777,16 @@
                  oninput="peAutoResize(this)">
           <button id="pe-label-confirm" onclick="peConfirmLabel()">✓ 確認</button>
         </div>
-
-        <!-- 獨立固定按鈕，四角迴避（DOM層） -->
+        <!-- 浮動標籤（固定存在，顯示/隱藏切換） -->
+        <div id="pe-float-active">
+          <span id="pe-float-badge" style="background:#f5c542;color:#111;font-family:'Courier New',monospace;font-weight:700;font-size:11px;border-radius:10px;padding:1px 6px;white-space:nowrap;pointer-events:none;box-shadow:0 2px 6px rgba(0,0,0,.4)"></span>
+          <span id="pe-float-plate" style="background:#f5c542;color:#111;font-family:'Courier New',monospace;font-weight:700;border-radius:5px;padding:3px 6px;white-space:nowrap;pointer-events:none;box-shadow:0 2px 6px rgba(0,0,0,.4)"></span>
+        </div>
+        <!-- 固定按鈕，四角迴避 -->
         <button id="pe-pin-btn" onclick="pePinLabel()">📌 固定</button>
       </div>
     </div>
   </div>
-
   <div class="pe-panel" id="pe-items-panel" style="display:none">
     <div class="pe-panel-header">
       <div class="pe-title"><span class="dot" style="background:#f5c542;box-shadow:0 0 8px #f5c542"></span><span style="color:#fff">🧾 照片標記品項</span></div>
@@ -992,7 +800,6 @@
       </div>
     </div>
   </div>
-
 </div>
 
 <!-- Camera modal -->
@@ -1010,7 +817,7 @@
     </div>
   </div>
 </div>
-<!-- Crop Modal (拍照後裁剪) -->
+<!-- Crop Modal -->
 <div id="pe-crop-modal">
   <h3>✂️ 裁剪照片</h3>
   <p>拖動邊框或角落調整範圍</p>
@@ -1018,14 +825,10 @@
     <img id="pe-crop-img" src="" alt="">
     <canvas id="pe-crop-mask"></canvas>
     <div id="pe-crop-sel">
-      <div class="pch" data-h="tl"></div>
-      <div class="pch" data-h="tc"></div>
-      <div class="pch" data-h="tr"></div>
-      <div class="pch" data-h="ml"></div>
-      <div class="pch" data-h="mr"></div>
-      <div class="pch" data-h="bl"></div>
-      <div class="pch" data-h="bc"></div>
-      <div class="pch" data-h="br"></div>
+      <div class="pch" data-h="tl"></div><div class="pch" data-h="tc"></div>
+      <div class="pch" data-h="tr"></div><div class="pch" data-h="ml"></div>
+      <div class="pch" data-h="mr"></div><div class="pch" data-h="bl"></div>
+      <div class="pch" data-h="bc"></div><div class="pch" data-h="br"></div>
     </div>
   </div>
   <div id="pe-crop-actions">
@@ -1034,7 +837,6 @@
     <button class="pe-crop-btn cancel"  onclick="peCropCancel()">✕ 取消</button>
   </div>
 </div>
-
 <input type="file" id="pe-file-input" accept="image/*" style="display:none" onchange="peLoadFile(event)">
 <canvas id="pe-capture-canvas" style="display:none"></canvas>
 
@@ -4461,942 +4263,632 @@ document.addEventListener('keydown', e => {
 // Enter key in add-row
 
 
-
-// ════════════════════════════════════════════════
-//  PHOTO EDITOR — integrated into Star2
-// ════════════════════════════════════════════════
+// ════════════════════════════════════
+//  PHOTO EDITOR
+// ════════════════════════════════════
 (function() {
+'use strict';
 
-const PE_PALETTE = [
-  '#000000','#ffffff','#888888','#cccccc','#4a4a4a','#2b2b2b',
+const PE_PAL = ['#000000','#ffffff','#888888','#cccccc','#4a4a4a','#2b2b2b',
   '#e8000d','#ff6b35','#ffcc00','#00c851','#007bff','#00bcd4',
-  '#e91e63','#9c27b0','#8bc34a','#ff5722','#795548','#607d8b'
-];
+  '#e91e63','#9c27b0','#8bc34a','#ff5722','#795548','#607d8b'];
 
 const peCanvas = document.getElementById('pe-canvas');
 const peCtx    = peCanvas.getContext('2d');
+const peFloatEl = document.getElementById('pe-float-active');
+const pinBtn    = document.getElementById('pe-pin-btn');
 
-let peImageLoaded = false;
-let peTool        = 'pencil';
-let peBrushClr    = '#e8000d';
-let peBrushSz     = 20;
-let peIsDrawing   = false;
-let peLastX = 0, peLastY = 0;
-let peLabelClr    = '#ffffff';
-let peFontPx      = 50;
-let pePending     = null;
-let peSeqBadges   = [];
-let peItems       = [];
-const PE_MAX_HIST = 30;
-let peUndoStack   = [], peRedoStack = [];
-let peCamStream   = null;
-let peFacingMode  = 'environment';
+let peImageLoaded=false, peTool='pencil', peBrushClr='#e8000d', peBrushSz=20;
+let peIsDrawing=false, peLastX=0, peLastY=0;
+let peLabelClr='#ffffff', peFontPx=50, pePending=null;
+let peSeqBadges=[], peItems=[];
+let peUndoStack=[], peRedoStack=[];
+const PE_MAX_HIST=30;
+let peCamStream=null, peFacingMode='environment';
 
-function peBuildPal(gridId, ctx) {
-  const grid = document.getElementById(gridId);
-  if (!grid) return;
-  PE_PALETTE.forEach(hex => {
+// ── Float label (snapshot+GPU) ────────────────────────────
+let peFloatItem=null, peFloatDragging=false, peFloatSnap=null;
+
+function peShowFloat(canvasX, canvasY, raw, seqIdx) {
+  document.getElementById('pe-float-badge').textContent = (seqIdx+1)+'.';
+  document.getElementById('pe-float-plate').textContent = raw;
+  peFloatItem.canvasX = canvasX;
+  peFloatItem.canvasY = canvasY;
+  peFloatEl.style.display = 'flex';
+  peApplyFloatPos();
+  peUpdatePinBtn();
+}
+
+function peApplyFloatPos() {
+  if (!peFloatItem) return;
+  const cr = peCanvas.getBoundingClientRect();
+  const ar = document.getElementById('pe-canvas-area').getBoundingClientRect();
+  const x  = peFloatItem.canvasX / (peCanvas.width/cr.width)  + cr.left - ar.left;
+  const y  = peFloatItem.canvasY / (peCanvas.height/cr.height) + cr.top  - ar.top;
+  peFloatEl.style.transform = `translate(${x}px,${y}px)`;
+}
+
+peFloatEl.addEventListener('pointerdown', e => {
+  e.preventDefault(); e.stopPropagation();
+  const cr = peCanvas.getBoundingClientRect();
+  const ar = document.getElementById('pe-canvas-area').getBoundingClientRect();
+  peFloatSnap = {
+    sx: peCanvas.width/cr.width, sy: peCanvas.height/cr.height,
+    startCX: peFloatItem.canvasX, startCY: peFloatItem.canvasY,
+    startPX: e.clientX, startPY: e.clientY,
+    offX: cr.left-ar.left, offY: cr.top-ar.top,
+    maxCX: peCanvas.width, maxCY: peCanvas.height,
+  };
+  peFloatDragging = true;
+  peFloatEl.setPointerCapture(e.pointerId);
+  peFloatEl.style.cursor = 'grabbing';
+});
+
+peFloatEl.addEventListener('pointermove', e => {
+  if (!peFloatDragging) return;
+  const s  = peFloatSnap;
+  const cx = Math.max(0, Math.min(s.startCX + (e.clientX-s.startPX)/s.sx, s.maxCX-10));
+  const cy = Math.max(0, Math.min(s.startCY + (e.clientY-s.startPY)/s.sy, s.maxCY-10));
+  peFloatItem.canvasX = cx;
+  peFloatItem.canvasY = cy;
+  peFloatEl.style.transform = `translate(${cx/s.sx+s.offX}px,${cy/s.sy+s.offY}px)`;
+  if (!peFloatEl._pt) {
+    peFloatEl._pt = setTimeout(() => { peFloatEl._pt=null; peUpdatePinBtn(); }, 150);
+  }
+});
+
+peFloatEl.addEventListener('pointerup', () => {
+  peFloatDragging = false;
+  peFloatEl.style.cursor = 'grab';
+  if (peFloatEl._pt) { clearTimeout(peFloatEl._pt); peFloatEl._pt=null; }
+  peUpdatePinBtn();
+});
+
+function peUpdatePinBtn() {
+  if (!peFloatItem) return;
+  const ar = document.getElementById('pe-canvas-area').getBoundingClientRect();
+  const cr = peCanvas.getBoundingClientRect();
+  if (!cr.width) return;
+  const sx=cr.width/peCanvas.width, sy=cr.height/peCanvas.height;
+  const fx=peFloatItem.canvasX*sx+(cr.left-ar.left);
+  const fy=peFloatItem.canvasY*sy+(cr.top-ar.top);
+  const M=10, bw=pinBtn.offsetWidth||80, bh=pinBtn.offsetHeight||34;
+  pinBtn.style.left = (fx>ar.width/2  ? M : ar.width-bw-M)+'px';
+  pinBtn.style.top  = (fy>ar.height/2 ? M : ar.height-bh-M)+'px';
+  pinBtn.classList.add('active');
+}
+
+window.addEventListener('orientationchange', () => {
+  setTimeout(() => {
+    if (peFloatItem && peFloatEl.style.display !== 'none') peApplyFloatPos();
+    peUpdatePinBtn();
+  }, 300);
+});
+
+// ── Palette ───────────────────────────────────────────────
+function peBuildPal(gid, ctx) {
+  const g = document.getElementById(gid); if (!g) return;
+  PE_PAL.forEach(hex => {
     const el = document.createElement('div');
-    el.className = 'pe-pal-sw';
-    el.style.background = hex;
-    el.addEventListener('pointerdown', e => { e.stopPropagation(); pePickColor(ctx, hex); });
-    grid.appendChild(el);
+    el.className = 'pe-pal-sw'; el.style.background = hex;
+    el.addEventListener('pointerdown', e => { e.stopPropagation(); pePickColor(ctx,hex); });
+    g.appendChild(el);
   });
 }
-peBuildPal('pe-pal-pencil', 'pencil');
-peBuildPal('pe-pal-label',  'label');
+peBuildPal('pe-pal-pencil','pencil');
+peBuildPal('pe-pal-label','label');
 
 window.peTogglePanel = function() {
-  const body = document.getElementById('pe-panel-body');
-  const icon = document.getElementById('pe-toggle-icon');
-  const hidden = body.style.display === 'none';
-  body.style.display = hidden ? '' : 'none';
-  icon.textContent   = hidden ? '▼' : '▶';
+  const b=document.getElementById('pe-panel-body'), i=document.getElementById('pe-toggle-icon');
+  const h=b.style.display==='none'; b.style.display=h?'':'none'; i.textContent=h?'▼':'▶';
 };
 
-// History
+// ── History ───────────────────────────────────────────────
 function peSaveHist() {
   peUndoStack.push(peCanvas.toDataURL());
-  if (peUndoStack.length > PE_MAX_HIST) peUndoStack.shift();
-  peRedoStack = [];
-  peUpdHistBtns();
+  if (peUndoStack.length>PE_MAX_HIST) peUndoStack.shift();
+  peRedoStack=[]; peUpdHistBtns();
 }
 function peUpdHistBtns() {
-  document.getElementById('pe-btn-undo').disabled = peUndoStack.length === 0;
-  document.getElementById('pe-btn-redo').disabled = peRedoStack.length === 0;
+  document.getElementById('pe-btn-undo').disabled = !peUndoStack.length;
+  document.getElementById('pe-btn-redo').disabled = !peRedoStack.length;
 }
 function peRestoreURL(url) {
   return new Promise(res => {
-    const img = new Image();
-    img.onload = () => { peCtx.clearRect(0,0,peCanvas.width,peCanvas.height); peCtx.drawImage(img,0,0); res(); };
-    img.src = url;
+    const img=new Image();
+    img.onload=()=>{ peCtx.clearRect(0,0,peCanvas.width,peCanvas.height); peCtx.drawImage(img,0,0); res(); };
+    img.src=url;
   });
 }
 window.peUndo = async function() {
   if (!peUndoStack.length) return;
   peRedoStack.push(peCanvas.toDataURL());
-  await peRestoreURL(peUndoStack.pop());
-  peUpdHistBtns();
+  await peRestoreURL(peUndoStack.pop()); peUpdHistBtns();
 };
 window.peRedo = async function() {
   if (!peRedoStack.length) return;
   peUndoStack.push(peCanvas.toDataURL());
-  await peRestoreURL(peRedoStack.pop());
-  peUpdHistBtns();
+  await peRestoreURL(peRedoStack.pop()); peUpdHistBtns();
 };
 
+// ── Tools ────────────────────────────────────────────────
 window.peSetTool = function(name) {
-  peTool = name;
-  peCancelLabel();
-  document.querySelectorAll('.pe-btn[id^="pe-tool-"]').forEach(b => b.classList.remove('active'));
-  const btn = document.getElementById('pe-tool-' + name);
-  if (btn) btn.classList.add('active');
-  peCanvas.style.cursor = name === 'label' ? 'cell' : 'crosshair';
+  peTool=name; peCancelLabel();
+  document.querySelectorAll('.pe-btn[id^="pe-tool-"]').forEach(b=>b.classList.remove('active'));
+  const b=document.getElementById('pe-tool-'+name); if(b) b.classList.add('active');
+  peCanvas.style.cursor = name==='label'?'cell':'crosshair';
 };
-
-window.peBrushSize = function(px, idx) {
-  peBrushSz = px;
-  document.querySelectorAll('.pe-size-btn[id^="pe-sz-"]').forEach(b => b.classList.remove('active'));
-  const b = document.getElementById('pe-sz-' + idx); if (b) b.classList.add('active');
+window.peBrushSize = function(px,idx) {
+  peBrushSz=px;
+  document.querySelectorAll('.pe-size-btn[id^="pe-sz-"]').forEach(b=>b.classList.remove('active'));
+  const b=document.getElementById('pe-sz-'+idx); if(b) b.classList.add('active');
 };
-
-window.peFontSize = function(px, idx) {
-  peFontPx = px;
-  document.querySelectorAll('.pe-size-btn[id^="pe-fs-"]').forEach(b => b.classList.remove('active'));
-  const b = document.getElementById('pe-fs-' + idx); if (b) b.classList.add('active');
-  const inp = document.getElementById('pe-label-input');
-  if (document.getElementById('pe-label-overlay').classList.contains('open')) {
-    inp.style.fontSize = peFontPx + 'px'; peAutoResize(inp);
-  }
+window.peFontSize = function(px,idx) {
+  peFontPx=px;
+  document.querySelectorAll('.pe-size-btn[id^="pe-fs-"]').forEach(b=>b.classList.remove('active'));
+  const b=document.getElementById('pe-fs-'+idx); if(b) b.classList.add('active');
 };
-
 window.peTogglePopup = function(id) {
-  document.querySelectorAll('.pe-color-popup').forEach(p => { if (p.id !== id) p.classList.remove('open'); });
+  document.querySelectorAll('.pe-color-popup').forEach(p=>{ if(p.id!==id) p.classList.remove('open'); });
   document.getElementById(id).classList.toggle('open');
 };
-function pePickColor(ctx, hex) {
-  if (ctx === 'pencil') { peBrushClr = hex; document.getElementById('pe-swatch-pencil').style.background = hex; peHiSwatch('pe-pal-pencil', hex); }
-  else { peLabelClr = hex; document.getElementById('pe-swatch-label').style.background = hex; peHiSwatch('pe-pal-label', hex); document.getElementById('pe-label-input').style.color = hex; }
-  document.querySelectorAll('.pe-color-popup').forEach(p => p.classList.remove('open'));
+function pePickColor(ctx,hex) {
+  if(ctx==='pencil'){peBrushClr=hex;document.getElementById('pe-swatch-pencil').style.background=hex;peHiSw('pe-pal-pencil',hex);}
+  else{peLabelClr=hex;document.getElementById('pe-swatch-label').style.background=hex;peHiSw('pe-pal-label',hex);}
+  document.querySelectorAll('.pe-color-popup').forEach(p=>p.classList.remove('open'));
 }
-window.peApplyCustomColor = function(ctx, hex) {
-  if (ctx === 'pencil') { peBrushClr = hex; document.getElementById('pe-swatch-pencil').style.background = hex; peClearSw('pe-pal-pencil'); }
-  else { peLabelClr = hex; document.getElementById('pe-swatch-label').style.background = hex; peClearSw('pe-pal-label'); document.getElementById('pe-label-input').style.color = hex; }
+window.peApplyCustomColor = function(ctx,hex) {
+  if(ctx==='pencil'){peBrushClr=hex;document.getElementById('pe-swatch-pencil').style.background=hex;}
+  else{peLabelClr=hex;document.getElementById('pe-swatch-label').style.background=hex;}
 };
 window.peOpenCustomColor = function(ctx) {
-  const inp = document.getElementById('pe-color-' + ctx);
-  inp.value = ctx === 'pencil' ? peBrushClr : peLabelClr;
-  inp.click();
-  document.querySelectorAll('.pe-color-popup').forEach(p => p.classList.remove('open'));
+  const inp=document.getElementById('pe-color-'+ctx);
+  inp.value=ctx==='pencil'?peBrushClr:peLabelClr; inp.click();
+  document.querySelectorAll('.pe-color-popup').forEach(p=>p.classList.remove('open'));
 };
-function peHiSwatch(gid, hex) {
-  document.getElementById(gid).querySelectorAll('.pe-pal-sw').forEach(s => {
-    s.classList.toggle('selected', peNH(s.style.background) === hex.toLowerCase());
+function peHiSw(gid,hex) {
+  document.getElementById(gid).querySelectorAll('.pe-pal-sw').forEach(s=>{
+    s.classList.toggle('selected', peNH(s.style.background)===hex.toLowerCase());
   });
 }
-function peClearSw(gid) { document.getElementById(gid).querySelectorAll('.pe-pal-sw').forEach(s => s.classList.remove('selected')); }
 function peNH(css) {
-  const m = css.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
-  if (!m) return css.toLowerCase();
-  return '#' + [m[1],m[2],m[3]].map(n => (+n).toString(16).padStart(2,'0')).join('');
+  const m=css.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+  if(!m) return css.toLowerCase();
+  return '#'+[m[1],m[2],m[3]].map(n=>(+n).toString(16).padStart(2,'0')).join('');
 }
-document.addEventListener('pointerdown', e => {
-  document.querySelectorAll('.pe-color-popup.open').forEach(p => {
-    const btnId = p.id === 'pe-popup-pencil' ? 'pe-btn-color-pencil' : 'pe-btn-color-label';
-    const btn = document.getElementById(btnId);
-    if (!p.contains(e.target) && btn && !btn.contains(e.target)) p.classList.remove('open');
+document.addEventListener('pointerdown', e=>{
+  document.querySelectorAll('.pe-color-popup.open').forEach(p=>{
+    const bid=p.id==='pe-popup-pencil'?'pe-btn-color-pencil':'pe-btn-color-label';
+    const btn=document.getElementById(bid);
+    if(!p.contains(e.target)&&btn&&!btn.contains(e.target)) p.classList.remove('open');
   });
 });
 
-// Drawing
+// ── Drawing ───────────────────────────────────────────────
 function peGetPos(e) {
-  const rect = peCanvas.getBoundingClientRect();
-  const sx = peCanvas.width / rect.width, sy = peCanvas.height / rect.height;
-  const src = e.touches ? e.touches[0] : e;
-  return [(src.clientX - rect.left) * sx, (src.clientY - rect.top) * sy];
+  const r=peCanvas.getBoundingClientRect();
+  const sx=peCanvas.width/r.width, sy=peCanvas.height/r.height;
+  const s=e.touches?e.touches[0]:e;
+  return [(s.clientX-r.left)*sx,(s.clientY-r.top)*sy];
 }
-peCanvas.addEventListener('pointerdown', e => {
+peCanvas.addEventListener('pointerdown', e=>{
   if (!peImageLoaded) return;
-  if (peTool === 'label') {
+  if (peTool==='label') {
     e.preventDefault();
-    // Block new input if a float label is waiting to be pinned
     if (peFloatItem) {
-      const pin = document.getElementById('pe-float-pin');
-      if (pin) { pin.style.transform='scale(1.25)'; setTimeout(()=>{pin.style.transform='';},250); }
-      // Flash pin btn instead
-      if (pinBtn) { pinBtn.style.transform='scale(1.25)'; setTimeout(()=>{pinBtn.style.transform='';},250); }
+      pinBtn.style.transform='scale(1.25)';
+      setTimeout(()=>{pinBtn.style.transform='';},250);
       return;
     }
     peOpenLabelAt(e); return;
   }
-  if (peTool === 'pencil') {
-    e.preventDefault(); peSaveHist(); peIsDrawing = true;
-    [peLastX, peLastY] = peGetPos(e);
-    peCtx.beginPath(); peCtx.arc(peLastX, peLastY, peBrushSz/2, 0, Math.PI*2);
-    peCtx.fillStyle = peBrushClr; peCtx.fill();
+  if (peTool==='pencil') {
+    e.preventDefault(); peSaveHist(); peIsDrawing=true;
+    [peLastX,peLastY]=peGetPos(e);
+    peCtx.beginPath(); peCtx.arc(peLastX,peLastY,peBrushSz/2,0,Math.PI*2);
+    peCtx.fillStyle=peBrushClr; peCtx.fill();
   }
 });
-peCanvas.addEventListener('pointermove', e => {
-  if (!peIsDrawing || peTool !== 'pencil') return;
+peCanvas.addEventListener('pointermove', e=>{
+  if (!peIsDrawing||peTool!=='pencil') return;
   e.preventDefault();
-  const [x, y] = peGetPos(e);
-  peCtx.beginPath(); peCtx.moveTo(peLastX, peLastY); peCtx.lineTo(x, y);
-  peCtx.strokeStyle = peBrushClr; peCtx.lineWidth = peBrushSz;
-  peCtx.lineCap = 'round'; peCtx.lineJoin = 'round'; peCtx.stroke();
-  [peLastX, peLastY] = [x, y];
+  const [x,y]=peGetPos(e);
+  peCtx.beginPath(); peCtx.moveTo(peLastX,peLastY); peCtx.lineTo(x,y);
+  peCtx.strokeStyle=peBrushClr; peCtx.lineWidth=peBrushSz;
+  peCtx.lineCap='round'; peCtx.lineJoin='round'; peCtx.stroke();
+  [peLastX,peLastY]=[x,y];
 });
-peCanvas.addEventListener('pointerup',  () => { peIsDrawing = false; });
-peCanvas.addEventListener('pointerout', () => { peIsDrawing = false; });
+peCanvas.addEventListener('pointerup',  ()=>{ peIsDrawing=false; });
+peCanvas.addEventListener('pointerout', ()=>{ peIsDrawing=false; });
 
-// Label parsing
+// ── Label ─────────────────────────────────────────────────
 function peParseLabel(raw) {
-  const c = raw.trim();
-  const m = c.match(/^(\d+(?:\.\d+)?)\s*[\u00d7xX*]\s*(\d+(?:\.\d+)?)$/);
-  if (m) return { price: parseFloat(m[1]), qty: parseFloat(m[2]) };
-  const s = c.match(/^(\d+(?:\.\d+)?)$/);
-  if (s) return { price: parseFloat(s[1]), qty: 1 };
+  const c=raw.trim();
+  const m=c.match(/^(\d+(?:\.\d+)?)\s*[\u00d7xX*]\s*(\d+(?:\.\d+)?)$/);
+  if(m) return {price:parseFloat(m[1]),qty:parseFloat(m[2])};
+  const s=c.match(/^(\d+(?:\.\d+)?)$/);
+  if(s) return {price:parseFloat(s[1]),qty:1};
   return null;
 }
 
 function peOpenLabelAt(e) {
-  const cr = peCanvas.getBoundingClientRect();
-  const ar = document.getElementById('pe-canvas-area').getBoundingClientRect();
-  const src = e.touches ? e.touches[0] : e;
-  const sx = peCanvas.width / cr.width, sy = peCanvas.height / cr.height;
-  const canvasX = (src.clientX - cr.left) * sx;
-  const canvasY = (src.clientY - cr.top)  * sy;
-  pePending = { canvasX, canvasY };
-  const overlay = document.getElementById('pe-label-overlay');
-  const inp = document.getElementById('pe-label-input');
-  inp.value = ''; inp.style.fontSize = peFontPx + 'px'; inp.style.color = peLabelClr; inp.style.width = '160px';
-  let x = src.clientX - ar.left, y = src.clientY - ar.top;
-  const M = 8, estW = 180, estH = Math.ceil(peFontPx * 1.5) + 50;
-  x = Math.max(M, Math.min(x, ar.width - estW - M));
-  y = Math.max(M, Math.min(y, ar.height - estH - M));
-  overlay.style.left = x + 'px'; overlay.style.top = y + 'px';
-  overlay.classList.add('open');
-  setTimeout(() => inp.focus(), 40);
+  const cr=peCanvas.getBoundingClientRect();
+  const ar=document.getElementById('pe-canvas-area').getBoundingClientRect();
+  const s=e.touches?e.touches[0]:e;
+  const sx=peCanvas.width/cr.width, sy=peCanvas.height/cr.height;
+  pePending = {
+    canvasX:(s.clientX-cr.left)*sx,
+    canvasY:(s.clientY-cr.top)*sy
+  };
+  const inp=document.getElementById('pe-label-input');
+  const ov=document.getElementById('pe-label-overlay');
+  inp.value=''; inp.style.fontSize='14px'; inp.style.width='140px';
+  let x=s.clientX-ar.left, y=s.clientY-ar.top;
+  x=Math.max(4,Math.min(x,ar.width-150));
+  y=Math.max(4,Math.min(y,ar.height-60));
+  ov.style.left=x+'px'; ov.style.top=y+'px';
+  ov.classList.add('open');
+  setTimeout(()=>inp.focus(),40);
 }
 
 window.peConfirmLabel = function() {
-  const inp = document.getElementById('pe-label-input');
-  const raw = inp.value.trim();
-  const parsed = raw ? peParseLabel(raw) : null;
-  if (!parsed || !pePending) { peCancelLabel(); return; }
-
-  const seqIdx = peItems.length;
-  peFloatItem = {
-    price: parsed.price, qty: parsed.qty,
-    seqIdx, raw,
-    canvasX: pePending.canvasX, canvasY: pePending.canvasY
-  };
+  const inp=document.getElementById('pe-label-input');
+  const raw=inp.value.trim();
+  const parsed=raw?peParseLabel(raw):null;
+  if (!parsed||!pePending) { peCancelLabel(); return; }
+  const seqIdx=peItems.length;
+  peFloatItem = { price:parsed.price, qty:parsed.qty, seqIdx, raw,
+    canvasX:pePending.canvasX, canvasY:pePending.canvasY };
   peCancelLabel();
-
-  // Show float label
   peShowFloat(peFloatItem.canvasX, peFloatItem.canvasY, raw, seqIdx);
 };
 
-// ── Float Label System (DOM, snapshot coords) ────────────────
-// Key idea: snapshot getBoundingClientRect ONCE on pointerdown,
-// then only do arithmetic during pointermove — zero reflow.
-
-let peFloatItem     = null;
-let peFloatEl       = null;   // the DOM div
-let peFloatDragging = false;
-let peFloatSnap     = null;   // snapshot at drag start
-
-const pinBtn = document.getElementById('pe-pin-btn');
-
-// Build float label DOM element
-function peShowFloat(canvasX, canvasY, raw, seqIdx) {
-  if (peFloatEl) { peFloatEl.remove(); peFloatEl = null; }
-
-  const div = document.createElement('div');
-  div.id = 'pe-float-active';
-  div.style.cssText = [
-    'position:absolute',
-    'z-index:40',
-    'display:flex',
-    'align-items:center',
-    'gap:4px',
-    'touch-action:none',
-    'cursor:grab',
-    'pointer-events:auto',
-    'will-change:transform',   // GPU layer — instant move
-    'user-select:none',
-  ].join(';');
-
-  // Badge
-  const badge = document.createElement('span');
-  badge.textContent = (seqIdx + 1) + '.';
-  badge.style.cssText = 'background:#f5c542;color:#111;font-family:"Courier New",monospace;font-weight:700;font-size:11px;border-radius:10px;padding:1px 6px;white-space:nowrap;pointer-events:none;box-shadow:0 2px 6px rgba(0,0,0,.4)';
-
-  // Text plate
-  const plate = document.createElement('span');
-  plate.textContent = raw;
-  plate.style.cssText = 'background:#f5c542;color:#111;font-family:"Courier New",monospace;font-weight:700;border-radius:5px;padding:3px 6px;white-space:nowrap;pointer-events:none;box-shadow:0 2px 6px rgba(0,0,0,.4)';
-
-  div.appendChild(badge);
-  div.appendChild(plate);
-  document.getElementById('pe-canvas-area').appendChild(div);
-  peFloatEl = div;
-
-  // Position using transform (GPU, no reflow)
-  peFloatItem.canvasX = canvasX;
-  peFloatItem.canvasY = canvasY;
-  peApplyFloatPos();
-
-  // Drag events on the element
-  div.addEventListener('pointerdown', e => {
-    if (e.target.id === 'pe-pin-btn') return;
-    e.preventDefault(); e.stopPropagation();
-
-    // Snapshot ONCE — no more getBoundingClientRect during move
-    const cr = peCanvas.getBoundingClientRect();
-    const ar = document.getElementById('pe-canvas-area').getBoundingClientRect();
-    peFloatSnap = {
-      sx: peCanvas.width  / cr.width,   // canvas→display scale
-      sy: peCanvas.height / cr.height,
-      offX: cr.left - ar.left,           // canvas offset within area
-      offY: cr.top  - ar.top,
-      startCX: peFloatItem.canvasX,      // canvas coords at drag start
-      startCY: peFloatItem.canvasY,
-      startPX: e.clientX,               // pointer at drag start
-      startPY: e.clientY,
-      maxCX: peCanvas.width,
-      maxCY: peCanvas.height,
-    };
-    peFloatDragging = true;
-    div.setPointerCapture(e.pointerId);
-    div.style.cursor = 'grabbing';
-  });
-
-  div.addEventListener('pointermove', e => {
-    if (!peFloatDragging || !peFloatSnap) return;
-    // Pure arithmetic — zero DOM queries
-    const s  = peFloatSnap;
-    const dx = (e.clientX - s.startPX) / s.sx;  // pointer delta → canvas delta
-    const dy = (e.clientY - s.startPY) / s.sy;
-    const cx = Math.max(0, Math.min(s.startCX + dx, s.maxCX - 10));
-    const cy = Math.max(0, Math.min(s.startCY + dy, s.maxCY - 10));
-    peFloatItem.canvasX = cx;
-    peFloatItem.canvasY = cy;
-    // GPU transform — no layout reflow at all
-    const dispX = cx / s.sx + s.offX;
-    const dispY = cy / s.sy + s.offY;
-    div.style.transform = `translate(${dispX}px,${dispY}px)`;
-    div.style.left = '0'; div.style.top = '0';
-    // Pin button throttle
-    if (!peFloatEl._pt) {
-      peFloatEl._pt = setTimeout(() => { peFloatEl._pt=null; peUpdatePinBtn(); }, 120);
-    }
-  });
-
-  div.addEventListener('pointerup', () => {
-    peFloatDragging = false;
-    div.style.cursor = 'grab';
-    if (peFloatEl._pt) { clearTimeout(peFloatEl._pt); peFloatEl._pt = null; }
-    peUpdatePinBtn();
-  });
-
-  peUpdatePinBtn();
-}
-
-// Apply canvas position to DOM element (used on first show)
-function peApplyFloatPos() {
-  if (!peFloatEl || !peFloatItem) return;
-  const cr   = peCanvas.getBoundingClientRect();
-  const ar   = document.getElementById('pe-canvas-area').getBoundingClientRect();
-  const sx   = peCanvas.width  / cr.width;
-  const sy   = peCanvas.height / cr.height;
-  const dispX = peFloatItem.canvasX / sx + (cr.left - ar.left);
-  const dispY = peFloatItem.canvasY / sy + (cr.top  - ar.top);
-  peFloatEl.style.left      = '0';
-  peFloatEl.style.top       = '0';
-  peFloatEl.style.transform = `translate(${dispX}px,${dispY}px)`;
-}
-
-// Four-corner pin button avoidance
-function peUpdatePinBtn() {
-  if (!peFloatItem) return;
-  const ar  = document.getElementById('pe-canvas-area').getBoundingClientRect();
-  const cr  = peCanvas.getBoundingClientRect();
-  if (!cr.width) return;
-  const sx  = cr.width  / peCanvas.width;
-  const sy  = cr.height / peCanvas.height;
-  const fx  = peFloatItem.canvasX * sx + (cr.left - ar.left);
-  const fy  = peFloatItem.canvasY * sy + (cr.top  - ar.top);
-  const bw  = pinBtn.offsetWidth  || 80;
-  const bh  = pinBtn.offsetHeight || 34;
-  const M   = 10;
-  pinBtn.style.left = (fx > ar.width  / 2 ? M : ar.width  - bw - M) + 'px';
-  pinBtn.style.top  = (fy > ar.height / 2 ? M : ar.height - bh - M) + 'px';
-  pinBtn.classList.add('active');
-}
-
-// orientationchange: just reposition float using fresh coords
-window.addEventListener('orientationchange', () => {
-  setTimeout(() => {
-    if (peFloatItem) peApplyFloatPos();
-    peUpdatePinBtn();
-  }, 300);
-})
-
-// ── Pin: commit float label to canvas ───────────
+// ── Pin ───────────────────────────────────────────────────
 window.pePinLabel = function() {
   if (!peFloatItem) return;
-  const { price, qty, seqIdx, raw } = peFloatItem;
-  const canvasX = peFloatItem.canvasX;
-  const canvasY = peFloatItem.canvasY;
-  const FONT = 'Courier New';
+  const {price,qty,seqIdx,raw} = peFloatItem;
+  const canvasX=peFloatItem.canvasX, canvasY=peFloatItem.canvasY;
+  const FONT='Courier New';
 
   peSaveHist();
-  peItems.push({ price, qty, seqIdx, canvasX, canvasY, raw });
+  peItems.push({price,qty,seqIdx,canvasX,canvasY,raw});
 
-  // Draw main text with background plate
-  peCtx.font         = '700 ' + peFontPx + 'px "' + FONT + '", monospace';
-  peCtx.textBaseline = 'top';
-  const textPad  = Math.round(peFontPx * 0.12);
-  const textW    = peCtx.measureText(raw).width + textPad * 2;
-  const textH    = peFontPx + textPad * 2;
-  const textR    = Math.round(peFontPx * 0.15);
-  // Background plate
-  peCtx.fillStyle = '#f5c542';
-  peCtx.shadowColor = 'rgba(0,0,0,0.5)';
-  peCtx.shadowBlur  = 6;
-  peCtx.beginPath();
-  peCtx.roundRect(canvasX, canvasY, textW, textH, textR);
-  peCtx.fill();
-  peCtx.shadowBlur = 0;
-  // Text on plate
-  peCtx.fillStyle  = '#111';
-  peCtx.shadowColor = 'rgba(0,0,0,0)';
-  peCtx.fillText(raw, canvasX + textPad, canvasY + textPad);
+  // Draw text plate
+  peCtx.font=`700 ${peFontPx}px "${FONT}",monospace`;
+  peCtx.textBaseline='top';
+  const tp=Math.round(peFontPx*0.12);
+  const tw=peCtx.measureText(raw).width+tp*2, th=peFontPx+tp*2;
+  peCtx.fillStyle='#f5c542'; peCtx.shadowColor='rgba(0,0,0,0.5)'; peCtx.shadowBlur=6;
+  peCtx.beginPath(); peCtx.roundRect(canvasX,canvasY,tw,th,Math.round(peFontPx*0.15)); peCtx.fill();
+  peCtx.shadowBlur=0; peCtx.fillStyle='#111'; peCtx.shadowColor='rgba(0,0,0,0)';
+  peCtx.fillText(raw,canvasX+tp,canvasY+tp);
 
-  // Draw badge LEFT of text
-  const badgeFontPx = Math.max(24, Math.round(peFontPx * 0.35));
-  const badgePad    = Math.round(badgeFontPx * 0.3);
-  const badgeText   = (seqIdx + 1) + '.';
-  peCtx.font        = '700 ' + badgeFontPx + 'px "' + FONT + '", monospace';
-  peCtx.textBaseline = 'top';
-  const badgeW      = peCtx.measureText(badgeText).width + badgePad * 2;
-  const badgeH      = badgeFontPx + badgePad * 2;
-  const badgeX      = canvasX - badgeW - Math.round(peFontPx * 0.08);
-  const badgeY      = canvasY;
-  peCtx.fillStyle   = '#f5c542';
-  peCtx.beginPath();
-  peCtx.roundRect(badgeX, badgeY, badgeW, badgeH, badgeH * 0.3);
-  peCtx.fill();
-  peCtx.fillStyle   = '#111';
-  peCtx.shadowColor = 'rgba(0,0,0,0)';
-  peCtx.fillText(badgeText, badgeX + badgePad, badgeY + badgePad);
-  peCtx.textBaseline = 'top';
+  // Draw badge left of text
+  const bfpx=Math.max(24,Math.round(peFontPx*0.35)), bpad=Math.round(bfpx*0.3);
+  const btxt=(seqIdx+1)+'.';
+  peCtx.font=`700 ${bfpx}px "${FONT}",monospace`;
+  const bw=peCtx.measureText(btxt).width+bpad*2, bh=bfpx+bpad*2;
+  const bx=canvasX-bw-Math.round(peFontPx*0.08), by=canvasY;
+  peCtx.fillStyle='#f5c542';
+  peCtx.beginPath(); peCtx.roundRect(bx,by,bw,bh,bh*0.3); peCtx.fill();
+  peCtx.fillStyle='#111'; peCtx.fillText(btxt,bx+bpad,by+bpad);
+  peCtx.textBaseline='top';
 
-  // Hide float label
-  if (peFloatEl) { peFloatEl.remove(); peFloatEl = null; }
+  // Hide float
+  peFloatEl.style.display='none';
   pinBtn.classList.remove('active');
-  peFloatItem = null;
-
+  peFloatItem=null;
   peShowItemsPanel();
-  peAddPhotoItemRow(seqIdx, price, qty);
-}
+  peAddPhotoItemRow(seqIdx,price,qty);
+};
+
 function peCancelLabel() {
   document.getElementById('pe-label-overlay').classList.remove('open');
-  document.getElementById('pe-label-input').value = '';
-  pePending = null;
+  document.getElementById('pe-label-input').value='';
+  pePending=null;
 }
 
-document.getElementById('pe-label-input').addEventListener('keydown', e => {
-  if (e.key === 'Enter')  { e.preventDefault(); window.peConfirmLabel(); }
-  if (e.key === 'Escape') { e.preventDefault(); peCancelLabel(); }
+document.getElementById('pe-label-input').addEventListener('keydown',e=>{
+  if(e.key==='Enter'){e.preventDefault();window.peConfirmLabel();}
+  if(e.key==='Escape'){e.preventDefault();peCancelLabel();}
 });
-document.getElementById('pe-canvas-area').addEventListener('pointerdown', e => {
-  const ov = document.getElementById('pe-label-overlay');
-  if (ov.classList.contains('open') && !ov.contains(e.target)) peCancelLabel();
-}, true);
+document.getElementById('pe-canvas-area').addEventListener('pointerdown',e=>{
+  const ov=document.getElementById('pe-label-overlay');
+  if(ov.classList.contains('open')&&!ov.contains(e.target)) peCancelLabel();
+},true);
 
 window.peAutoResize = function(inp) {
-  const tmp = document.createElement('span');
-  tmp.style.cssText = 'font:700 ' + inp.style.fontSize + ' "Space Mono",monospace;position:absolute;visibility:hidden;white-space:pre';
-  tmp.textContent = inp.value || inp.placeholder;
+  const tmp=document.createElement('span');
+  tmp.style.cssText='font:700 14px "Courier New",monospace;position:absolute;visibility:hidden;white-space:pre';
+  tmp.textContent=inp.value||inp.placeholder;
   document.body.appendChild(tmp);
-  const newW = Math.max(160, Math.min(tmp.offsetWidth + 28, window.innerWidth * 0.75));
-  inp.style.width = newW + 'px';
-  document.getElementById('pe-label-confirm').style.width = newW + 'px';
+  inp.style.width=Math.max(100,Math.min(tmp.offsetWidth+20,window.innerWidth*0.6))+'px';
   document.body.removeChild(tmp);
 };
 
-// Items panel
-function peShowItemsPanel() {
-  document.getElementById('pe-items-panel').style.display = '';
-}
+// ── Items panel ───────────────────────────────────────────
+function peShowItemsPanel() { document.getElementById('pe-items-panel').style.display=''; }
 
-function peAddPhotoItemRow(seqIdx, price, qty) {
-  const list = document.getElementById('pe-item-list');
+function peAddPhotoItemRow(seqIdx,price,qty) {
+  const list=document.getElementById('pe-item-list');
   itemRowCount++;
-  const id = itemRowCount;
+  const id=itemRowCount;
+  const div=document.createElement('div');
+  div.className='item-row'; div.id='itemRow_'+id; div.dataset.peSeq=seqIdx;
 
-  const div = document.createElement('div');
-  div.className = 'item-row';
-  div.id = 'itemRow_' + id;
-  div.dataset.peSeq = seqIdx;
+  const wrap=document.createElement('div');
+  wrap.style.cssText='display:flex;gap:6px;align-items:center;flex-wrap:wrap;width:100%';
 
-  // ── outer wrapper ──────────────────────────────────────────
-  const wrap = document.createElement('div');
-  wrap.style.cssText = 'display:flex;gap:6px;align-items:center;flex-wrap:wrap;width:100%';
+  const mk=(tag,css,txt)=>{const el=document.createElement(tag);if(css)el.style.cssText=css;if(txt)el.textContent=txt;return el;};
 
-  // seq number
-  const seqSpan = document.createElement('span');
-  seqSpan.className = 'pe-seq-num';
-  seqSpan.textContent = (seqIdx + 1) + '.';
-  wrap.appendChild(seqSpan);
+  const seqEl=mk('span','font-family:monospace;font-size:0.78rem;color:#5affda;font-weight:700;white-space:nowrap;min-width:28px',(seqIdx+1)+'.');
+  wrap.appendChild(seqEl);
+  wrap.appendChild(mk('span','font-size:0.78rem;color:var(--muted);white-space:nowrap','品項'));
 
-  // label
-  const lbl = document.createElement('span');
-  lbl.style.cssText = 'font-size:0.78rem;color:var(--muted);white-space:nowrap';
-  lbl.textContent = '品項';
-  wrap.appendChild(lbl);
+  const pfx=mk('input','width:80px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:0.82rem;padding:5px 8px;outline:none;font-family:inherit');
+  pfx.id='prefix_'+id; pfx.placeholder='編號/備注...';
+  pfx.setAttribute('oninput','updateItemName('+id+')');
+  pfx.addEventListener('focus',()=>pfx.style.borderColor='var(--accent)');
+  pfx.addEventListener('blur', ()=>pfx.style.borderColor='var(--border)');
+  wrap.appendChild(pfx);
 
-  // prefix input
-  const prefixInp = document.createElement('input');
-  prefixInp.id = 'prefix_' + id;
-  prefixInp.placeholder = '編號/備注...';
-  prefixInp.style.cssText = 'width:80px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:0.82rem;padding:5px 8px;outline:none;font-family:inherit';
-  prefixInp.setAttribute('oninput', 'updateItemName(' + id + ')');
-  prefixInp.addEventListener('focus', () => prefixInp.style.borderColor = 'var(--accent)');
-  prefixInp.addEventListener('blur',  () => prefixInp.style.borderColor = 'var(--border)');
-  wrap.appendChild(prefixInp);
-
-  // category dropdown wrapper
-  const catWrap = document.createElement('div');
-  catWrap.style.position = 'relative';
-
-  const catBtn = document.createElement('button');
-  catBtn.id = 'catBtn_' + id;
-  catBtn.style.cssText = 'padding:5px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:0.82rem;cursor:pointer;font-family:inherit;white-space:nowrap;display:flex;align-items:center;gap:5px;';
-  catBtn.setAttribute('onclick', 'toggleCatDropdown(' + id + ')');
-  const catLabel = document.createElement('span');
-  catLabel.id = 'catLabel_' + id;
-  catLabel.textContent = '選擇品項 ▼';
-  catBtn.appendChild(catLabel);
+  const catWrap=mk('div'); catWrap.style.position='relative';
+  const catBtn=mk('button','padding:5px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:0.82rem;cursor:pointer;font-family:inherit;white-space:nowrap;display:flex;align-items:center;gap:5px');
+  catBtn.id='catBtn_'+id; catBtn.setAttribute('onclick','toggleCatDropdown('+id+')');
+  const catLbl=mk('span','','選擇品項 ▼'); catLbl.id='catLabel_'+id; catBtn.appendChild(catLbl);
   catWrap.appendChild(catBtn);
 
-  const catDD = document.createElement('div');
-  catDD.id = 'catDropdown_' + id;
-  catDD.style.cssText = 'display:none;position:absolute;top:100%;left:0;z-index:3000;width:220px;background:var(--surface);border:1px solid var(--accent);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.5);padding:8px;margin-top:4px';
-
-  const catList = document.createElement('div');
-  catList.id = 'catList_' + id;
-  catList.style.cssText = 'max-height:220px;overflow-y:auto;margin-bottom:6px';
+  const catDD=mk('div','display:none;position:absolute;top:100%;left:0;z-index:3000;width:220px;background:var(--surface);border:1px solid var(--accent);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.5);padding:8px;margin-top:4px');
+  catDD.id='catDropdown_'+id;
+  const catList=mk('div','max-height:220px;overflow-y:auto;margin-bottom:6px'); catList.id='catList_'+id;
   catDD.appendChild(catList);
-
-  const catBtnRow = document.createElement('div');
-  catBtnRow.style.cssText = 'border-top:1px dashed var(--border);padding-top:6px;display:flex;gap:6px';
-  const addCatBtn = document.createElement('button');
-  addCatBtn.style.cssText = 'flex:1;padding:6px 8px;border-radius:6px;border:1px solid #4ade80;background:rgba(74,222,128,0.1);color:#4ade80;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:inherit';
-  addCatBtn.textContent = '＋ 新增';
-  addCatBtn.setAttribute('onclick', 'addCategoryFromRow(' + id + ')');
-  const delCatBtn = document.createElement('button');
-  delCatBtn.style.cssText = 'flex:1;padding:6px 8px;border-radius:6px;border:1px solid #fb7185;background:rgba(251,113,133,0.1);color:#fb7185;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:inherit';
-  delCatBtn.textContent = '🗑 刪除';
-  delCatBtn.setAttribute('onclick', 'showDeleteCategoryModal(' + id + ')');
-  catBtnRow.appendChild(addCatBtn);
-  catBtnRow.appendChild(delCatBtn);
-  catDD.appendChild(catBtnRow);
-  catWrap.appendChild(catDD);
+  const catBR=mk('div','border-top:1px dashed var(--border);padding-top:6px;display:flex;gap:6px');
+  const addCB=mk('button','flex:1;padding:6px 8px;border-radius:6px;border:1px solid #4ade80;background:rgba(74,222,128,0.1);color:#4ade80;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:inherit','＋ 新增');
+  addCB.setAttribute('onclick','addCategoryFromRow('+id+')');
+  const delCB=mk('button','flex:1;padding:6px 8px;border-radius:6px;border:1px solid #fb7185;background:rgba(251,113,133,0.1);color:#fb7185;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:inherit','🗑 刪除');
+  delCB.setAttribute('onclick','showDeleteCategoryModal('+id+')');
+  catBR.appendChild(addCB); catBR.appendChild(delCB);
+  catDD.appendChild(catBR); catWrap.appendChild(catDD);
   wrap.appendChild(catWrap);
 
-  // item name preview
-  const namePreview = document.createElement('span');
-  namePreview.id = 'itemNamePreview_' + id;
-  namePreview.style.cssText = 'font-size:0.82rem;color:var(--accent);font-weight:700;min-width:60px';
-  wrap.appendChild(namePreview);
+  const nmPv=mk('span','font-size:0.82rem;color:var(--accent);font-weight:700;min-width:60px'); nmPv.id='itemNamePreview_'+id;
+  wrap.appendChild(nmPv);
 
-  // preorder button
-  const preBtn = document.createElement('button');
-  preBtn.id = 'preorderBtn_' + id;
-  preBtn.style.cssText = 'padding:5px 10px;border-radius:6px;border:1px solid #ccff00;background:transparent;color:#ccff00;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;transition:all 0.15s';
-  preBtn.textContent = '預購';
-  preBtn.setAttribute('onclick', 'togglePreorder(' + id + ')');
+  const preBtn=mk('button','padding:5px 10px;border-radius:6px;border:1px solid #ccff00;background:transparent;color:#ccff00;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap','預購');
+  preBtn.id='preorderBtn_'+id; preBtn.setAttribute('onclick','togglePreorder('+id+')');
   wrap.appendChild(preBtn);
 
-  // price
-  const priceLbl = document.createElement('span');
-  priceLbl.style.cssText = 'font-size:0.78rem;color:var(--muted)';
-  priceLbl.textContent = '單價';
-  wrap.appendChild(priceLbl);
+  wrap.appendChild(mk('span','font-size:0.78rem;color:var(--muted)','單價'));
+  const priceEl=mk('input'); priceEl.id='price_'+id; priceEl.className='item-num-input';
+  priceEl.style.width='90px'; priceEl.type='text'; priceEl.inputMode='numeric'; priceEl.value=price;
+  wrap.appendChild(priceEl);
 
-  const priceInp = document.createElement('input');
-  priceInp.id = 'price_' + id;
-  priceInp.className = 'item-num-input';
-  priceInp.style.width = '90px';
-  priceInp.type = 'text';
-  priceInp.inputMode = 'numeric';
-  priceInp.value = price;
-  wrap.appendChild(priceInp);
+  wrap.appendChild(mk('span','font-size:0.78rem;color:var(--muted)','數量'));
+  const qtyEl=mk('input'); qtyEl.id='qty_'+id; qtyEl.className='item-num-input';
+  qtyEl.type='text'; qtyEl.inputMode='numeric'; qtyEl.value=qty;
+  wrap.appendChild(qtyEl);
 
-  // qty
-  const qtyLbl = document.createElement('span');
-  qtyLbl.style.cssText = 'font-size:0.78rem;color:var(--muted)';
-  qtyLbl.textContent = '數量';
-  wrap.appendChild(qtyLbl);
+  const sub=mk('span','font-size:0.78rem;color:#5affda;font-family:monospace','= $'+(price*qty));
+  sub.id='subtotal_'+id; wrap.appendChild(sub);
 
-  const qtyInp = document.createElement('input');
-  qtyInp.id = 'qty_' + id;
-  qtyInp.className = 'item-num-input';
-  qtyInp.type = 'text';
-  qtyInp.inputMode = 'numeric';
-  qtyInp.value = qty;
-  wrap.appendChild(qtyInp);
-
-  // subtotal
-  const subtotal = document.createElement('span');
-  subtotal.id = 'subtotal_' + id;
-  subtotal.style.cssText = 'font-size:0.78rem;color:#5affda;font-family:monospace';
-  subtotal.textContent = '= $' + (price * qty);
-  wrap.appendChild(subtotal);
-
-  // back button
-  const backBtn = document.createElement('button');
-  backBtn.style.cssText = 'padding:4px 8px;border-radius:5px;border:1px solid #fb7185;background:transparent;color:#fb7185;font-size:0.78rem;cursor:pointer';
-  backBtn.textContent = '↩ 跳回';
-  backBtn.setAttribute('onclick', 'peRemoveItemRow(' + id + ',' + seqIdx + ')');
-  wrap.appendChild(backBtn);
-
-  div.appendChild(wrap);
-  list.appendChild(div);
-  renderItemCategories(id, '');
-
-  // live subtotal
-  const upd = () => {
-    const q = parseFloat(qtyInp.value)   || 0;
-    const p = parseFloat(priceInp.value) || 0;
-    subtotal.textContent = (q && p) ? '= $' + (q * p) : '';
+  const bk=mk('button','padding:4px 8px;border-radius:5px;border:1px solid #fb7185;background:transparent;color:#fb7185;font-size:0.78rem;cursor:pointer','↩ 跳回');
+  bk.setAttribute('onclick','peRemoveItemRow('+id+','+seqIdx+')');
+  wrap.appendChild(bk);
+  div.appendChild(wrap); list.appendChild(div);
+  renderItemCategories(id,'');
+  const upd=()=>{
+    const q=parseFloat(qtyEl.value)||0,p=parseFloat(priceEl.value)||0;
+    sub.textContent=(q&&p)?'= $'+(q*p):'';
   };
-  qtyInp.addEventListener('input', upd);
-  priceInp.addEventListener('input', upd);
+  qtyEl.addEventListener('input',upd); priceEl.addEventListener('input',upd);
 }
 
-window.peRemoveItemRow = async function(rowId, seqIdx) {
-  // If this item is currently floating (not yet pinned), cancel the float
-  if (peFloatItem && peFloatItem.seqIdx === seqIdx) {
-    if (peFloatEl) { peFloatEl.remove(); peFloatEl = null; }
-    pinBtn.classList.remove('active');
-    peFloatItem = null;
-    const el = document.getElementById('itemRow_' + rowId);
-    if (el) el.remove();
-    if (peItems.length === 0) document.getElementById('pe-items-panel').style.display = 'none';
+window.peRemoveItemRow = async function(rowId,seqIdx) {
+  if (peFloatItem&&peFloatItem.seqIdx===seqIdx) {
+    peFloatEl.style.display='none'; pinBtn.classList.remove('active'); peFloatItem=null;
+    const el=document.getElementById('itemRow_'+rowId); if(el) el.remove();
+    if (!peItems.length) document.getElementById('pe-items-panel').style.display='none';
     return;
   }
-  // 1. Remove the item row UI
-  const el = document.getElementById('itemRow_' + rowId);
-  if (el) el.remove();
-
-  // 2. Remove this badge
-  const badge = document.getElementById('pe-badge-' + seqIdx);
-  if (badge) badge.remove();
-
-  // 3. Remove from items array
-  peItems = peItems.filter(it => it.seqIdx !== seqIdx);
-
-  // 4. Undo canvas to restore the state before this label was drawn
-  //    Each label saves one history entry before drawing, so one undo per remove
-  if (peUndoStack.length > 0) {
-    // Restore to snapshot taken just before this label was drawn
-    const snapshot = peUndoStack.pop();
-    peRedoStack = []; // clear redo since we're branching
-    await peRestoreURL(snapshot);
-    // Redraw all remaining labels on top of the restored canvas
-    const UFONT = 'Courier New';
-    peItems.forEach(it => {
-      peCtx.font         = '700 ' + peFontPx + 'px "' + UFONT + '", monospace';
-      peCtx.textBaseline = 'top';
-      const utPad = Math.round(peFontPx * 0.12);
-      const utW   = peCtx.measureText(it.raw).width + utPad * 2;
-      const utH   = peFontPx + utPad * 2;
-      const utR   = Math.round(peFontPx * 0.15);
-      peCtx.fillStyle   = '#f5c542';
-      peCtx.shadowColor = 'rgba(0,0,0,0.5)';
-      peCtx.shadowBlur  = 6;
-      peCtx.beginPath();
-      peCtx.roundRect(it.canvasX, it.canvasY, utW, utH, utR);
-      peCtx.fill();
-      peCtx.shadowBlur  = 0;
-      peCtx.fillStyle   = '#111';
-      peCtx.shadowColor = 'rgba(0,0,0,0)';
-      peCtx.fillText(it.raw, it.canvasX + utPad, it.canvasY + utPad);
-      const bfPx = Math.max(24, Math.round(peFontPx * 0.35));
-      const bPad = Math.round(bfPx * 0.3);
-      const bTxt = (it.seqIdx + 1) + '.';
-      peCtx.font = '700 ' + bfPx + 'px "' + UFONT + '", monospace';
-      peCtx.textBaseline = 'top';
-      const bW = peCtx.measureText(bTxt).width + bPad * 2;
-      const bH = bfPx + bPad * 2;
-      const bX = it.canvasX - bW - Math.round(peFontPx * 0.08);
-      peCtx.fillStyle = '#f5c542';
-      peCtx.beginPath();
-      peCtx.roundRect(bX, it.canvasY, bW, bH, bH * 0.3);
-      peCtx.fill();
-      peCtx.fillStyle = '#111';
-      peCtx.shadowColor = 'rgba(0,0,0,0)';
-      peCtx.fillText(bTxt, bX + bPad, it.canvasY + bPad);
-      peCtx.textBaseline = 'top';
+  const el=document.getElementById('itemRow_'+rowId); if(el) el.remove();
+  const badge=document.getElementById('pe-badge-'+seqIdx); if(badge) badge.remove();
+  peItems=peItems.filter(it=>it.seqIdx!==seqIdx);
+  if (peUndoStack.length>0) {
+    const snap=peUndoStack.pop(); peRedoStack=[];
+    await peRestoreURL(snap);
+    const F='Courier New';
+    peItems.forEach(it=>{
+      peCtx.font=`700 ${peFontPx}px "${F}",monospace`; peCtx.textBaseline='top';
+      const tp=Math.round(peFontPx*0.12);
+      const tw=peCtx.measureText(it.raw).width+tp*2, th=peFontPx+tp*2;
+      peCtx.fillStyle='#f5c542'; peCtx.shadowColor='rgba(0,0,0,0.5)'; peCtx.shadowBlur=6;
+      peCtx.beginPath(); peCtx.roundRect(it.canvasX,it.canvasY,tw,th,Math.round(peFontPx*0.15)); peCtx.fill();
+      peCtx.shadowBlur=0; peCtx.fillStyle='#111'; peCtx.shadowColor='rgba(0,0,0,0)';
+      peCtx.fillText(it.raw,it.canvasX+tp,it.canvasY+tp);
+      const bfpx=Math.max(24,Math.round(peFontPx*0.35)),bpad=Math.round(bfpx*0.3);
+      const btxt=(it.seqIdx+1)+'.';
+      peCtx.font=`700 ${bfpx}px "${F}",monospace`;
+      const bw=peCtx.measureText(btxt).width+bpad*2,bh=bfpx+bpad*2;
+      const bx=it.canvasX-bw-Math.round(peFontPx*0.08);
+      peCtx.fillStyle='#f5c542'; peCtx.beginPath(); peCtx.roundRect(bx,it.canvasY,bw,bh,bh*0.3); peCtx.fill();
+      peCtx.fillStyle='#111'; peCtx.fillText(btxt,bx+bpad,it.canvasY+bpad); peCtx.textBaseline='top';
     });
   }
   peUpdHistBtns();
-
-  // 5. Renumber remaining badges
-  peItems.sort((a,b) => a.seqIdx - b.seqIdx).forEach((it, ni) => {
-    const b = document.getElementById('pe-badge-' + it.seqIdx);
-    if (b) b.textContent = (ni + 1) + '.';
+  peItems.sort((a,b)=>a.seqIdx-b.seqIdx).forEach((it,ni)=>{
+    const b=document.getElementById('pe-badge-'+it.seqIdx); if(b) b.textContent=(ni+1)+'.';
   });
-
-  if (peItems.length === 0) document.getElementById('pe-items-panel').style.display = 'none';
+  if (!peItems.length) document.getElementById('pe-items-panel').style.display='none';
 };
 
 window.peGenerateOrder = function() {
-  const rows = document.querySelectorAll('#pe-item-list .item-row');
-  if (rows.length === 0) { alert('尚無標記品項'); return; }
-  let added = 0;
-  rows.forEach((row, rowIdx) => {
-    const id = row.id.replace('itemRow_', '');
-    const prefix   = document.getElementById('prefix_' + id)?.value.trim() || '';
-    const catLabel = document.getElementById('catLabel_' + id)?.textContent.replace(' ▼','').trim() || '';
-    const catName  = (catLabel === '選擇品項') ? '' : catLabel;
-    const isPreorder = document.getElementById('preorderBtn_' + id)?.getAttribute('data-on') === '1';
-    let name = ((isPreorder ? '預購' : '') + prefix + catName).trim();
-    // 沒有填品項名稱時，預設為「編號1」「編號2」…
-    if (!name) name = '編號' + (rowIdx + 1);
-    const qty   = parseFloat(document.getElementById('qty_' + id)?.value)   || 1;
-    const price = parseFloat(document.getElementById('price_' + id)?.value) || 0;
-    if (price <= 0) return;
-    orders.push({ id: nextId++, name, qty, price, source: 'photo' });
-    added++;
+  const rows=document.querySelectorAll('#pe-item-list .item-row');
+  if (!rows.length) { alert('尚無標記品項'); return; }
+  let added=0;
+  rows.forEach((row,ri)=>{
+    const id=row.id.replace('itemRow_','');
+    const pfx=document.getElementById('prefix_'+id)?.value.trim()||'';
+    const cat=document.getElementById('catLabel_'+id)?.textContent.replace(' ▼','').trim()||'';
+    const catN=cat==='選擇品項'?'':cat;
+    const isP=document.getElementById('preorderBtn_'+id)?.getAttribute('data-on')==='1';
+    let name=((isP?'預購':'')+pfx+catN).trim();
+    if (!name) name='編號'+(ri+1);
+    const qty=parseFloat(document.getElementById('qty_'+id)?.value)||1;
+    const price=parseFloat(document.getElementById('price_'+id)?.value)||0;
+    if (price<=0) return;
+    orders.push({id:nextId++,name,qty,price,source:'photo'}); added++;
   });
-  if (added === 0) { alert('請確認每行都有填品項名稱和金額'); return; }
-
-  // 自動下載當前編輯照片（防呆：2秒內不重複下載）
-  if (peImageLoaded && !window._peDownloadLock) {
-    window._peDownloadLock = true;
-    setTimeout(() => { window._peDownloadLock = false; }, 2000);
-    const link = document.createElement('a');
-    link.download = 'order_photo_' + Date.now() + '.png';
-    link.href = peCanvas.toDataURL('image/png');
-    link.click();
+  if (!added) { alert('請確認每行都有填品項名稱和金額'); return; }
+  if (peImageLoaded&&!window._peDLock) {
+    window._peDLock=true; setTimeout(()=>{window._peDLock=false;},2000);
+    const a=document.createElement('a'); a.download='order_photo_'+Date.now()+'.png';
+    a.href=peCanvas.toDataURL('image/png'); a.click();
   }
-
-  peResetAll();
-  renderTable();
-  document.querySelector('.panel.full').scrollIntoView({ behavior: 'smooth' });
+  peResetAll(); renderTable();
+  document.querySelector('.panel.full').scrollIntoView({behavior:'smooth'});
 };
 
 window.peResetItems = function() {
-  if (peItems.length > 0 && !confirm('確定要清除所有標記品項？')) return;
+  if (peItems.length&&!confirm('確定要清除所有標記品項？')) return;
   peResetAll();
 };
 
 function peResetAll() {
-  document.getElementById('pe-canvas-area').querySelectorAll('.pe-seq-badge').forEach(b => b.remove());
-  peSeqBadges = []; peItems = [];
-  // Clear float label
-  if (peFloatEl) { peFloatEl.remove(); peFloatEl = null; }
-  pinBtn.classList.remove('active');
-  peFloatItem = null;
-  document.getElementById('pe-item-list').innerHTML = '';
-  document.getElementById('pe-items-panel').style.display = 'none';
-  peImageLoaded = false; peCanvas.style.display = 'none';
-  document.getElementById('pe-empty').style.display = '';
-  peCtx.clearRect(0, 0, peCanvas.width, peCanvas.height);
-  peUndoStack = []; peRedoStack = []; peUpdHistBtns();
+  document.getElementById('pe-canvas-area').querySelectorAll('.pe-seq-badge').forEach(b=>b.remove());
+  peSeqBadges=[]; peItems=[];
+  peFloatEl.style.display='none'; pinBtn.classList.remove('active'); peFloatItem=null;
+  document.getElementById('pe-item-list').innerHTML='';
+  document.getElementById('pe-items-panel').style.display='none';
+  peImageLoaded=false; peCanvas.style.display='none';
+  document.getElementById('pe-empty').style.display='';
+  peCtx.clearRect(0,0,peCanvas.width,peCanvas.height);
+  peUndoStack=[]; peRedoStack=[]; peUpdHistBtns();
 }
 
-// Camera
-window.peOpenCamera = async function() { document.getElementById('pe-camera-modal').classList.add('open'); await peStartStream(); };
+// ── Camera ────────────────────────────────────────────────
+window.peOpenCamera = async function() {
+  document.getElementById('pe-camera-modal').classList.add('open');
+  await peStartStream();
+};
 async function peStartStream() {
   if (peCamStream) peStopStream();
   try {
-    peCamStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: peFacingMode, width:{ideal:1920}, height:{ideal:1080} }, audio: false });
-    document.getElementById('pe-video').srcObject = peCamStream;
-    document.getElementById('pe-camera-msg').textContent = '對準目標後按下快門';
-  } catch(err) { document.getElementById('pe-camera-msg').textContent = '⚠️ 無法存取相機：' + err.message; }
+    peCamStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:peFacingMode,width:{ideal:1920},height:{ideal:1080}},audio:false});
+    document.getElementById('pe-video').srcObject=peCamStream;
+    document.getElementById('pe-camera-msg').textContent='對準目標後按下快門';
+  } catch(err){document.getElementById('pe-camera-msg').textContent='⚠️ 無法存取相機：'+err.message;}
 }
-function peStopStream() { if (peCamStream) { peCamStream.getTracks().forEach(t => t.stop()); peCamStream = null; } }
-window.peCloseCamera = function() { peStopStream(); document.getElementById('pe-camera-modal').classList.remove('open'); document.getElementById('pe-video').srcObject = null; };
-window.peSwitchCamera = async function() { peFacingMode = peFacingMode === 'environment' ? 'user' : 'environment'; await peStartStream(); };
+function peStopStream() { if(peCamStream){peCamStream.getTracks().forEach(t=>t.stop());peCamStream=null;} }
+window.peCloseCamera = function() {
+  peStopStream();
+  document.getElementById('pe-camera-modal').classList.remove('open');
+  document.getElementById('pe-video').srcObject=null;
+};
+window.peSwitchCamera = async function() {
+  peFacingMode=peFacingMode==='environment'?'user':'environment'; await peStartStream();
+};
 window.peCapturePhoto = function() {
-  const video = document.getElementById('pe-video');
-  const cap   = document.getElementById('pe-capture-canvas');
-  cap.width = video.videoWidth || 1280; cap.height = video.videoHeight || 720;
-  cap.getContext('2d').drawImage(video, 0, 0, cap.width, cap.height);
-  const flash = document.createElement('div'); flash.className = 'pe-flash';
-  document.body.appendChild(flash); setTimeout(() => flash.remove(), 400);
-  // 拍照後進裁剪流程
+  const v=document.getElementById('pe-video'), cap=document.getElementById('pe-capture-canvas');
+  cap.width=v.videoWidth||1280; cap.height=v.videoHeight||720;
+  cap.getContext('2d').drawImage(v,0,0,cap.width,cap.height);
+  const f=document.createElement('div'); f.className='pe-flash';
+  document.body.appendChild(f); setTimeout(()=>f.remove(),400);
   window.peCloseCamera();
-  peOpenCrop(cap.toDataURL('image/jpeg', 0.95));
+  peOpenCrop(cap.toDataURL('image/jpeg',0.95));
 };
 
-// ── CROP ─────────────────────────────────────────
-let peCropDataURL  = null;
-// crop rect in display px, relative to cropImg
-let peCR = { x:0, y:0, w:0, h:0 };
-let peCropActive   = null; // current handle being dragged
-let peCropPtrStart = null; // { clientX, clientY, rect: clone of peCR }
-const CROP_MIN     = 30;   // minimum px size
+// ── Crop ──────────────────────────────────────────────────
+let peCropDataURL=null, peCR={x:0,y:0,w:0,h:0}, peCropActive=null, peCropPtrStart=null;
+const CROP_MIN=30;
+const cropWrap=document.getElementById('pe-crop-wrap');
+const cropSel=document.getElementById('pe-crop-sel');
+const cropImg=document.getElementById('pe-crop-img');
+const cropMask=document.getElementById('pe-crop-mask');
 
-const cropWrap = document.getElementById('pe-crop-wrap');
-const cropSel  = document.getElementById('pe-crop-sel');
-const cropImg  = document.getElementById('pe-crop-img');
-const cropMask = document.getElementById('pe-crop-mask');
-
-// Draw dark mask around selection
 function peCropDrawMask() {
-  const iw = cropImg.offsetWidth;
-  const ih = cropImg.offsetHeight;
-  cropMask.width  = iw;
-  cropMask.height = ih;
-  const c = cropMask.getContext('2d');
-  c.clearRect(0, 0, iw, ih);
-  c.fillStyle = 'rgba(0,0,0,0.55)';
-  // top
-  c.fillRect(0, 0, iw, peCR.y);
-  // bottom
-  c.fillRect(0, peCR.y + peCR.h, iw, ih - peCR.y - peCR.h);
-  // left
-  c.fillRect(0, peCR.y, peCR.x, peCR.h);
-  // right
-  c.fillRect(peCR.x + peCR.w, peCR.y, iw - peCR.x - peCR.w, peCR.h);
+  const iw=cropImg.offsetWidth, ih=cropImg.offsetHeight;
+  cropMask.width=iw; cropMask.height=ih;
+  const c=cropMask.getContext('2d'); c.clearRect(0,0,iw,ih);
+  c.fillStyle='rgba(0,0,0,0.55)';
+  c.fillRect(0,0,iw,peCR.y); c.fillRect(0,peCR.y+peCR.h,iw,ih-peCR.y-peCR.h);
+  c.fillRect(0,peCR.y,peCR.x,peCR.h); c.fillRect(peCR.x+peCR.w,peCR.y,iw-peCR.x-peCR.w,peCR.h);
 }
-
-// Position the selection div + handles
-function peCropApplyRect() {
-  cropSel.style.left   = peCR.x + 'px';
-  cropSel.style.top    = peCR.y + 'px';
-  cropSel.style.width  = peCR.w + 'px';
-  cropSel.style.height = peCR.h + 'px';
+function peCropApply() {
+  cropSel.style.cssText+=`;left:${peCR.x}px;top:${peCR.y}px;width:${peCR.w}px;height:${peCR.h}px`;
+  cropSel.style.left=peCR.x+'px'; cropSel.style.top=peCR.y+'px';
+  cropSel.style.width=peCR.w+'px'; cropSel.style.height=peCR.h+'px';
   peCropDrawMask();
 }
-
 function peOpenCrop(dataURL) {
-  peCropDataURL = dataURL;
-  const img = document.getElementById('pe-crop-img');
-  img.src = dataURL;
-  img.onload = () => {
+  peCropDataURL=dataURL;
+  cropImg.src=dataURL;
+  cropImg.onload=()=>{
     document.getElementById('pe-crop-modal').classList.add('open');
-    // wait a frame for layout
-    requestAnimationFrame(() => {
-      const iw = cropImg.offsetWidth;
-      const ih = cropImg.offsetHeight;
-      cropMask.style.position = 'absolute';
-      cropMask.style.top  = '0'; cropMask.style.left = '0';
-      cropMask.style.pointerEvents = 'none';
-      // default: full image selected with 8px inset
-      const PAD = 8;
-      peCR = { x: PAD, y: PAD, w: iw - PAD*2, h: ih - PAD*2 };
-      peCropApplyRect();
+    requestAnimationFrame(()=>{
+      const iw=cropImg.offsetWidth, ih=cropImg.offsetHeight;
+      cropMask.style.cssText='position:absolute;top:0;left:0;pointer-events:none';
+      const P=8; peCR={x:P,y:P,w:iw-P*2,h:ih-P*2}; peCropApply();
     });
   };
 }
-
-// Which edges each handle moves
-const HANDLE_MAP = {
-  tl: ['l','t'], tc: ['t'],    tr: ['r','t'],
-  ml: ['l'],                   mr: ['r'],
-  bl: ['l','b'], bc: ['b'],    br: ['r','b']
-};
-
-// Attach pointer events to each handle
-cropSel.querySelectorAll('.pch').forEach(h => {
-  h.addEventListener('pointerdown', e => {
+const HM={tl:['l','t'],tc:['t'],tr:['r','t'],ml:['l'],mr:['r'],bl:['l','b'],bc:['b'],br:['r','b']};
+cropSel.querySelectorAll('.pch').forEach(h=>{
+  h.addEventListener('pointerdown',e=>{
     e.stopPropagation(); e.preventDefault();
-    peCropActive   = h.dataset.h;
-    peCropPtrStart = { cx: e.clientX, cy: e.clientY, rect: { ...peCR } };
+    peCropActive=h.dataset.h; peCropPtrStart={cx:e.clientX,cy:e.clientY,rect:{...peCR}};
     h.setPointerCapture(e.pointerId);
   });
 });
-
-// Move + up on document so drag works even if finger slides off handle
-document.addEventListener('pointermove', e => {
-  if (!peCropActive || !peCropPtrStart) return;
-  const iw  = cropImg.offsetWidth;
-  const ih  = cropImg.offsetHeight;
-  const dx  = e.clientX - peCropPtrStart.cx;
-  const dy  = e.clientY - peCropPtrStart.cy;
-  const r0  = peCropPtrStart.rect;
-  let { x, y, w, h: hh } = r0;
-  const edges = HANDLE_MAP[peCropActive];
-
-  if (edges.includes('l')) {
-    const nx = Math.max(0, Math.min(r0.x + dx, r0.x + r0.w - CROP_MIN));
-    w = r0.w - (nx - r0.x); x = nx;
-  }
-  if (edges.includes('r')) {
-    w = Math.max(CROP_MIN, Math.min(r0.w + dx, iw - r0.x));
-  }
-  if (edges.includes('t')) {
-    const ny = Math.max(0, Math.min(r0.y + dy, r0.y + r0.h - CROP_MIN));
-    hh = r0.h - (ny - r0.y); y = ny;
-  }
-  if (edges.includes('b')) {
-    hh = Math.max(CROP_MIN, Math.min(r0.h + dy, ih - r0.y));
-  }
-  peCR = { x, y, w, h: hh };
-  peCropApplyRect();
+document.addEventListener('pointermove',e=>{
+  if (!peCropActive||!peCropPtrStart) return;
+  const iw=cropImg.offsetWidth, ih=cropImg.offsetHeight;
+  const dx=e.clientX-peCropPtrStart.cx, dy=e.clientY-peCropPtrStart.cy;
+  const r0=peCropPtrStart.rect; let {x,y,w,h:hh}=r0;
+  const edges=HM[peCropActive];
+  if(edges.includes('l')){const nx=Math.max(0,Math.min(r0.x+dx,r0.x+r0.w-CROP_MIN));w=r0.w-(nx-r0.x);x=nx;}
+  if(edges.includes('r')){w=Math.max(CROP_MIN,Math.min(r0.w+dx,iw-r0.x));}
+  if(edges.includes('t')){const ny=Math.max(0,Math.min(r0.y+dy,r0.y+r0.h-CROP_MIN));hh=r0.h-(ny-r0.y);y=ny;}
+  if(edges.includes('b')){hh=Math.max(CROP_MIN,Math.min(r0.h+dy,ih-r0.y));}
+  peCR={x,y,w,h:hh}; peCropApply();
 });
-
-document.addEventListener('pointerup', () => {
-  peCropActive = null; peCropPtrStart = null;
-});
+document.addEventListener('pointerup',()=>{peCropActive=null;peCropPtrStart=null;});
 
 window.peCropConfirm = function() {
-  const dispRect = cropImg.getBoundingClientRect();
-  const sx = cropImg.naturalWidth  / cropImg.offsetWidth;
-  const sy = cropImg.naturalHeight / cropImg.offsetHeight;
-  const px = Math.round(peCR.x * sx);
-  const py = Math.round(peCR.y * sy);
-  const pw = Math.max(1, Math.round(peCR.w * sx));
-  const ph = Math.max(1, Math.round(peCR.h * sy));
-
-  const tmp  = document.createElement('canvas');
-  tmp.width  = pw; tmp.height = ph;
-  const full = document.getElementById('pe-capture-canvas');
-  tmp.getContext('2d').drawImage(full, px, py, pw, ph, 0, 0, pw, ph);
-
-  const out = new Image();
-  out.onload = () => { peLoadImg(out); };
-  out.src = tmp.toDataURL('image/png');
+  const sx=cropImg.naturalWidth/cropImg.offsetWidth, sy=cropImg.naturalHeight/cropImg.offsetHeight;
+  const px=Math.round(peCR.x*sx), py=Math.round(peCR.y*sy);
+  const pw=Math.max(1,Math.round(peCR.w*sx)), ph=Math.max(1,Math.round(peCR.h*sy));
+  const tmp=document.createElement('canvas'); tmp.width=pw; tmp.height=ph;
+  tmp.getContext('2d').drawImage(document.getElementById('pe-capture-canvas'),px,py,pw,ph,0,0,pw,ph);
+  const out=new Image(); out.onload=()=>peLoadImg(out); out.src=tmp.toDataURL('image/png');
   document.getElementById('pe-crop-modal').classList.remove('open');
 };
-
 window.peCropSkip = function() {
-  const img = new Image();
-  img.onload = () => { peLoadImg(img); };
-  img.src = peCropDataURL;
+  const img=new Image(); img.onload=()=>peLoadImg(img); img.src=peCropDataURL;
   document.getElementById('pe-crop-modal').classList.remove('open');
 };
-
 window.peCropCancel = function() {
-  document.getElementById('pe-crop-modal').classList.remove('open');
-  peCropDataURL = null;
+  document.getElementById('pe-crop-modal').classList.remove('open'); peCropDataURL=null;
 };
 
+// ── File load ─────────────────────────────────────────────
 window.peOpenFile = function() { document.getElementById('pe-file-input').click(); };
 window.peLoadFile = function(e) {
-  const file = e.target.files[0]; if (!file) return;
-  const reader = new FileReader();
-  reader.onload = ev => { const img = new Image(); img.onload = () => peLoadImg(img); img.src = ev.target.result; };
-  reader.readAsDataURL(file); e.target.value = '';
+  const file=e.target.files[0]; if(!file) return;
+  const r=new FileReader();
+  r.onload=ev=>{const img=new Image();img.onload=()=>peLoadImg(img);img.src=ev.target.result;};
+  r.readAsDataURL(file); e.target.value='';
 };
 function peLoadImg(img) {
-  peCanvas.width = img.naturalWidth || img.width; peCanvas.height = img.naturalHeight || img.height;
-  peCtx.drawImage(img, 0, 0);
-  peCanvas.style.display = 'block'; document.getElementById('pe-empty').style.display = 'none';
-  peImageLoaded = true; peUndoStack = []; peRedoStack = []; peUpdHistBtns();
+  peCanvas.width=img.naturalWidth||img.width; peCanvas.height=img.naturalHeight||img.height;
+  peCtx.drawImage(img,0,0);
+  peCanvas.style.display='block'; document.getElementById('pe-empty').style.display='none';
+  peImageLoaded=true; peUndoStack=[]; peRedoStack=[]; peUpdHistBtns();
   window.peSetTool('label');
 }
 window.peSaveImage = function() {
-  if (!peImageLoaded) { alert('尚未載入影像'); return; }
-  const link = document.createElement('a'); link.download = 'photo_' + Date.now() + '.png';
-  link.href = peCanvas.toDataURL('image/png'); link.click();
+  if (!peImageLoaded){alert('尚未載入影像');return;}
+  const a=document.createElement('a'); a.download='photo_'+Date.now()+'.png';
+  a.href=peCanvas.toDataURL('image/png'); a.click();
 };
 
 })(); // end photo editor IIFE
