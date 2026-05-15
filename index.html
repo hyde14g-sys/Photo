@@ -600,6 +600,7 @@
     flex-shrink: 1;
     overflow: hidden;
     touch-action: none;
+    cursor: default;
   }
   #pe-crop-img {
     display: block;
@@ -620,19 +621,19 @@
   #pe-crop-sel {
     position: absolute;
     border: 2px solid var(--accent);
-    pointer-events: none;
     box-sizing: border-box;
+    pointer-events: none;   /* frame itself non-interactive */
   }
 
   /* 8 handles: 4 corners + 4 edges */
   .pch {
     position: absolute;
-    width: 22px; height: 22px;
+    width: 28px; height: 28px;
     background: var(--accent);
-    border-radius: 3px;
+    border-radius: 4px;
     transform: translate(-50%, -50%);
     touch-action: none;
-    cursor: pointer;
+    pointer-events: all;    /* handles ARE interactive */
     z-index: 10;
   }
   /* corner positions */
@@ -5025,34 +5026,39 @@ cropSel.querySelectorAll('.pch').forEach(h => {
     peCropPtrStart = { cx: e.clientX, cy: e.clientY, rect: { ...peCR } };
     h.setPointerCapture(e.pointerId);
   });
-  h.addEventListener('pointermove', e => {
-    if (peCropActive !== h.dataset.h) return;
-    const iw  = cropImg.offsetWidth;
-    const ih  = cropImg.offsetHeight;
-    const dx  = e.clientX - peCropPtrStart.cx;
-    const dy  = e.clientY - peCropPtrStart.cy;
-    const r0  = peCropPtrStart.rect;
-    let { x, y, w, h: hh } = r0;
-    const edges = HANDLE_MAP[peCropActive];
+});
 
-    if (edges.includes('l')) {
-      const nx = Math.max(0, Math.min(r0.x + dx, r0.x + r0.w - CROP_MIN));
-      w = r0.w - (nx - r0.x); x = nx;
-    }
-    if (edges.includes('r')) {
-      w = Math.max(CROP_MIN, Math.min(r0.w + dx, iw - r0.x));
-    }
-    if (edges.includes('t')) {
-      const ny = Math.max(0, Math.min(r0.y + dy, r0.y + r0.h - CROP_MIN));
-      hh = r0.h - (ny - r0.y); y = ny;
-    }
-    if (edges.includes('b')) {
-      hh = Math.max(CROP_MIN, Math.min(r0.h + dy, ih - r0.y));
-    }
-    peCR = { x, y, w, h: hh };
-    peCropApplyRect();
-  });
-  h.addEventListener('pointerup', () => { peCropActive = null; });
+// Move + up on document so drag works even if finger slides off handle
+document.addEventListener('pointermove', e => {
+  if (!peCropActive || !peCropPtrStart) return;
+  const iw  = cropImg.offsetWidth;
+  const ih  = cropImg.offsetHeight;
+  const dx  = e.clientX - peCropPtrStart.cx;
+  const dy  = e.clientY - peCropPtrStart.cy;
+  const r0  = peCropPtrStart.rect;
+  let { x, y, w, h: hh } = r0;
+  const edges = HANDLE_MAP[peCropActive];
+
+  if (edges.includes('l')) {
+    const nx = Math.max(0, Math.min(r0.x + dx, r0.x + r0.w - CROP_MIN));
+    w = r0.w - (nx - r0.x); x = nx;
+  }
+  if (edges.includes('r')) {
+    w = Math.max(CROP_MIN, Math.min(r0.w + dx, iw - r0.x));
+  }
+  if (edges.includes('t')) {
+    const ny = Math.max(0, Math.min(r0.y + dy, r0.y + r0.h - CROP_MIN));
+    hh = r0.h - (ny - r0.y); y = ny;
+  }
+  if (edges.includes('b')) {
+    hh = Math.max(CROP_MIN, Math.min(r0.h + dy, ih - r0.y));
+  }
+  peCR = { x, y, w, h: hh };
+  peCropApplyRect();
+});
+
+document.addEventListener('pointerup', () => {
+  peCropActive = null; peCropPtrStart = null;
 });
 
 window.peCropConfirm = function() {
