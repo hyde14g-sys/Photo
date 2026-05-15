@@ -4746,24 +4746,56 @@ floatLabel.addEventListener('pointerdown', e => {
 floatLabel.addEventListener('pointermove', e => {
   if (!peFloatDragging || !peFloatStart) return;
   const ar  = document.getElementById('pe-canvas-area').getBoundingClientRect();
-  const fw  = floatLabel.offsetWidth;
-  const fh  = floatLabel.offsetHeight;
   const M   = 4;
-  const nx  = Math.max(M, Math.min(peFloatStart.lx + e.clientX - peFloatStart.cx, ar.width  - fw - M));
-  const ny  = Math.max(M, Math.min(peFloatStart.ly + e.clientY - peFloatStart.cy, ar.height - fh - M));
+  // Clamp position: left/top only, no right/bottom clamp by element width
+  // so the label can reach the full right/bottom edge
+  const nx  = Math.max(M, Math.min(peFloatStart.lx + e.clientX - peFloatStart.cx, ar.width  - M));
+  const ny  = Math.max(M, Math.min(peFloatStart.ly + e.clientY - peFloatStart.cy, ar.height - M));
   floatLabel.style.left = nx + 'px';
   floatLabel.style.top  = ny + 'px';
-  // Update stored canvas coordinates in real time
+  // Update canvas coordinates in real time using fresh getBoundingClientRect
   if (peFloatItem) {
     const cr = peCanvas.getBoundingClientRect();
     const sx = peCanvas.width  / cr.width;
     const sy = peCanvas.height / cr.height;
-    peFloatItem.canvasX = nx * sx;
-    peFloatItem.canvasY = ny * sy;
+    // nx/ny are relative to canvas-area; canvas itself may be offset within area
+    const canvasOffX = cr.left - ar.left;
+    const canvasOffY = cr.top  - ar.top;
+    peFloatItem.canvasX = (nx - canvasOffX) * sx;
+    peFloatItem.canvasY = (ny - canvasOffY) * sy;
   }
 });
 
 floatLabel.addEventListener('pointerup', () => { peFloatDragging = false; });
+
+// 旋轉後重新計算 float label 顯示位置（canvasX/Y 已正確，重新換算 display 座標）
+window.addEventListener('orientationchange', () => {
+  setTimeout(() => {
+    const cr = peCanvas.getBoundingClientRect();
+    const ar = document.getElementById('pe-canvas-area').getBoundingClientRect();
+    if (!cr.width) return;
+    const sx = peCanvas.width  / cr.width;
+    const sy = peCanvas.height / cr.height;
+
+    // Reposition float label if active
+    if (peFloatItem && floatLabel.classList.contains('active')) {
+      const bx = peFloatItem.canvasX / sx + (cr.left - ar.left);
+      const by = peFloatItem.canvasY / sy + (cr.top  - ar.top);
+      floatLabel.style.left = Math.max(4, bx) + 'px';
+      floatLabel.style.top  = Math.max(4, by) + 'px';
+    }
+
+    // Reposition all pinned badges
+    peItems.forEach(it => {
+      const badge = document.getElementById('pe-badge-' + it.seqIdx);
+      if (!badge) return;
+      const bx = it.canvasX / sx + (cr.left - ar.left);
+      const by = it.canvasY / sy + (cr.top  - ar.top);
+      badge.style.left = bx + 'px';
+      badge.style.top  = by + 'px';
+    });
+  }, 300);
+});
 
 // ── Pin: commit float label to canvas ───────────
 window.pePinLabel = function() {
