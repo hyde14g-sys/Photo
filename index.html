@@ -587,35 +587,35 @@
   }
   #pe-label-confirm:hover { filter: brightness(1.15); }
 
-  /* ── 浮動數字層 (確認後、固定前) ── */
-  #pe-float-label {
-    display: none; position: absolute; z-index: 40;
-    flex-direction: row; align-items: center; gap: 4px;
-    touch-action: none; cursor: grab;
-    pointer-events: auto;
-  }
-  #pe-float-label.active { display: flex; }
-  #pe-float-label:active { cursor: grabbing; }
-  #pe-float-text {
-    font-family: 'Courier New', Courier, monospace; font-weight: 700;
-    color: #111; line-height: 1;
-    background: #f5c542;
-    padding: 3px 6px;
-    border-radius: 5px;
+  /* ── SVG 浮動層（與 canvas 同座標系） ── */
+  #pe-svg {
+    position: absolute; top: 0; left: 0;
+    width: 100%; height: 100%;
     pointer-events: none;
-    white-space: nowrap;
-    box-shadow: 0 2px 6px rgba(0,0,0,.4);
+    overflow: visible;
+    z-index: 20;
+    display: none;
   }
-  #pe-float-badge {
-    background: var(--accent); color: #111;
-    font-family: 'Courier New', Courier, monospace; font-weight: 700; font-size: 11px;
-    border-radius: 10px; padding: 1px 6px;
-    pointer-events: none; white-space: nowrap;
-    box-shadow: 0 2px 6px rgba(0,0,0,.4);
-    flex-shrink: 0;
+  #pe-svg.active { display: block; }
+  .pe-svg-float { cursor: grab; pointer-events: all; }
+  .pe-svg-float:active { cursor: grabbing; }
+  .pe-svg-plate {
+    fill: #f5c542;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,.5));
+  }
+  .pe-svg-text {
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: 700; fill: #111;
+    dominant-baseline: hanging;
+  }
+  .pe-svg-badge-rect { fill: #f5c542; }
+  .pe-svg-badge-text {
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: 700; fill: #111;
+    dominant-baseline: hanging;
   }
 
-  /* ── 獨立固定按鈕（四角迴避） ── */
+  /* ── 獨立固定按鈕（四角迴避，DOM層） ── */
   #pe-pin-btn {
     display: none;
     position: absolute; z-index: 45;
@@ -903,7 +903,7 @@
 <div class="header">
   <div style="display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap">
     <img src="data:image/jpeg;base64,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" alt="史塔兔" style="width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid var(--accent);box-shadow:0 0 16px rgba(245,197,66,0.4)">
-    <h1>史塔兔 GOGO STAR 2 <span style="font-size:0.45em;color:var(--muted);font-weight:400;vertical-align:middle;letter-spacing:0.05em">Ver 3.01</span></h1>
+    <h1>史塔兔 GOGO STAR 2 <span style="font-size:0.45em;color:var(--muted);font-weight:400;vertical-align:middle;letter-spacing:0.05em">Ver 3.02</span></h1>
   </div>
   <p id="dailyQuote" style="color:#39ff14;text-shadow:0 0 8px #39ff14;">輕輕鬆鬆算訂單 老婆辛苦了</p>
         <button class="lottery-open-btn" onclick="openLottery()">🎰 幸運抽獎</button>
@@ -992,12 +992,9 @@
           <button id="pe-label-confirm" onclick="peConfirmLabel()">✓ 確認</button>
         </div>
 
-        <!-- 浮動數字（確認後可拖移，固定才寫入canvas） -->
-        <div id="pe-float-label">
-          <span id="pe-float-badge"></span>
-          <span id="pe-float-text"></span>
-        </div>
-        <!-- 獨立固定按鈕，四角迴避 -->
+        <!-- SVG 浮動層：與 canvas 同座標系，自動跟著照片縮放旋轉 -->
+        <svg id="pe-svg" xmlns="http://www.w3.org/2000/svg"></svg>
+        <!-- 獨立固定按鈕，四角迴避（DOM層，不需座標換算） -->
         <button id="pe-pin-btn" onclick="pePinLabel()">📌 固定</button>
       </div>
     </div>
@@ -4647,6 +4644,8 @@ peCanvas.addEventListener('pointerdown', e => {
     if (peFloatItem) {
       const pin = document.getElementById('pe-float-pin');
       if (pin) { pin.style.transform='scale(1.25)'; setTimeout(()=>{pin.style.transform='';},250); }
+      // Flash pin btn instead
+      if (pinBtn) { pinBtn.style.transform='scale(1.25)'; setTimeout(()=>{pinBtn.style.transform='';},250); }
       return;
     }
     peOpenLabelAt(e); return;
@@ -4714,133 +4713,184 @@ window.peConfirmLabel = function() {
   };
   peCancelLabel();
 
-  // Show float label: position it so the TEXT starts at the tap point
-  // (not the badge — badge is to the left)
-  const cr   = peCanvas.getBoundingClientRect();
-  const ar   = document.getElementById('pe-canvas-area').getBoundingClientRect();
-  const sx   = peCanvas.width  / cr.width;
-  const sy   = peCanvas.height / cr.height;
-  // Initial display position = canvas tap point converted to area coords
-  const tapX = peFloatItem.canvasX / sx + (cr.left - ar.left);
-  const tapY = peFloatItem.canvasY / sy + (cr.top  - ar.top);
-
-  const fl     = document.getElementById('pe-float-label');
-  const ftxt   = document.getElementById('pe-float-text');
-  const fbadge = document.getElementById('pe-float-badge');
-  ftxt.textContent    = raw;
-  ftxt.style.fontSize = Math.round(peFontPx / sx) + 'px';
-  fbadge.textContent  = (seqIdx + 1) + '.';
-
-  // We want the text left edge at tapX, but the badge sits to the left.
-  // So offset float label left by badge width (measured after render).
-  fl.style.left = tapX + 'px';
-  fl.style.top  = tapY + 'px';
-  fl.classList.add('active');
-
-  // Adjust left after badge renders (next frame)
-  requestAnimationFrame(() => {
-    const badgeW = fbadge.offsetWidth + 4; // 4 = gap
-    fl.style.left = Math.max(0, tapX - badgeW) + 'px';
-    peUpdatePinBtn();
-  });
+  // Show float label in SVG world — no DOM coordinate conversion needed
+  peSvgSync();
+  peSvgShowFloat(peFloatItem.canvasX, peFloatItem.canvasY, raw, seqIdx);
 };
 
-// ── Float label drag ─────────────────────────────
+// ── SVG Float System ─────────────────────────────
+// All floating label coords are in canvas pixel space.
+// The SVG viewBox matches canvas dimensions and CSS scales it to fit,
+// so no coordinate conversion is ever needed for display.
+
 let peFloatItem     = null;
 let peFloatDragging = false;
-let peFloatStart    = null;
+let peFloatSvgEl    = null;  // the draggable <g> in SVG
+let peFloatStart    = null;  // { svgX, svgY, ex, ey } drag start
 
-const floatLabel = document.getElementById('pe-float-label');
-const pinBtn     = document.getElementById('pe-pin-btn');
+const peSvg    = document.getElementById('pe-svg');
+const pinBtn   = document.getElementById('pe-pin-btn');
 
-// ── Four-corner avoidance for pin button ─────────
-function peUpdatePinBtn() {
-  if (!peFloatItem || !floatLabel.classList.contains('active')) return;
-  const ar  = document.getElementById('pe-canvas-area').getBoundingClientRect();
-  const fx  = parseFloat(floatLabel.style.left) || 0;
-  const fy  = parseFloat(floatLabel.style.top)  || 0;
-  const M   = 10; // margin from edge
-  const bw  = pinBtn.offsetWidth  || 80;
-  const bh  = pinBtn.offsetHeight || 34;
-
-  // Which half is float label in?
-  const inRight  = fx > ar.width  / 2;
-  const inBottom = fy > ar.height / 2;
-
-  // Go to opposite corner
-  const px = inRight  ? M              : ar.width  - bw - M;
-  const py = inBottom ? M              : ar.height - bh - M;
-
-  pinBtn.style.left = px + 'px';
-  pinBtn.style.top  = py + 'px';
-  pinBtn.classList.add('active');
+// ── helpers ──────────────────────────────────────
+// Get canvas pixel coords from a pointer event
+function peSvgEvtCoords(e) {
+  const pt  = peSvg.createSVGPoint();
+  const src = e.touches ? e.touches[0] : e;
+  pt.x = src.clientX;
+  pt.y = src.clientY;
+  // Transform screen coords → SVG (= canvas pixel) coords
+  const m = peSvg.getScreenCTM().inverse();
+  const t = pt.matrixTransform(m);
+  return { x: t.x, y: t.y };
 }
 
-floatLabel.addEventListener('pointerdown', e => {
+// Sync SVG viewBox to match canvas dimensions
+function peSvgSync() {
+  if (!peCanvas.width) return;
+  peSvg.setAttribute('viewBox', `0 0 ${peCanvas.width} ${peCanvas.height}`);
+}
+
+// ── Build float SVG group ─────────────────────────
+function peSvgShowFloat(canvasX, canvasY, raw, seqIdx) {
+  // Remove old float group if exists
+  if (peFloatSvgEl) { peFloatSvgEl.remove(); peFloatSvgEl = null; }
+
+  const FONT   = 'Courier New';
+  const fSize  = peFontPx;
+  const pad    = Math.round(fSize * 0.12);
+  const bfSize = Math.max(24, Math.round(fSize * 0.35));
+  const bPad   = Math.round(bfSize * 0.3);
+  const bLabel = (seqIdx + 1) + '.';
+  const r      = Math.round(fSize * 0.15);
+
+  // Measure text using off-screen canvas context
+  peCtx.save();
+  peCtx.font = `700 ${fSize}px "${FONT}", monospace`;
+  const txtW = peCtx.measureText(raw).width;
+  peCtx.font = `700 ${bfSize}px "${FONT}", monospace`;
+  const badgeW = peCtx.measureText(bLabel).width + bPad * 2;
+  peCtx.restore();
+
+  const txtH   = fSize + pad * 2;
+  const badgeH = bfSize + bPad * 2;
+  const gap    = Math.round(fSize * 0.08);
+  const totalW = badgeW + gap + txtW + pad * 2;
+
+  // Create SVG group
+  const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+  g.setAttribute('class', 'pe-svg-float');
+  g.setAttribute('transform', `translate(${canvasX},${canvasY})`);
+
+  // Badge background
+  const bRect = document.createElementNS('http://www.w3.org/2000/svg','rect');
+  bRect.setAttribute('x', 0); bRect.setAttribute('y', 0);
+  bRect.setAttribute('width', badgeW); bRect.setAttribute('height', badgeH);
+  bRect.setAttribute('rx', badgeH * 0.3); bRect.setAttribute('ry', badgeH * 0.3);
+  bRect.setAttribute('class', 'pe-svg-badge-rect');
+  g.appendChild(bRect);
+
+  // Badge text
+  const bTxt = document.createElementNS('http://www.w3.org/2000/svg','text');
+  bTxt.setAttribute('x', bPad); bTxt.setAttribute('y', bPad);
+  bTxt.setAttribute('font-family', `"${FONT}", monospace`);
+  bTxt.setAttribute('font-weight', '700');
+  bTxt.setAttribute('font-size', bfSize);
+  bTxt.setAttribute('fill', '#111');
+  bTxt.setAttribute('dominant-baseline', 'hanging');
+  bTxt.textContent = bLabel;
+  g.appendChild(bTxt);
+
+  // Text plate background
+  const tRect = document.createElementNS('http://www.w3.org/2000/svg','rect');
+  const tX = badgeW + gap;
+  tRect.setAttribute('x', tX); tRect.setAttribute('y', 0);
+  tRect.setAttribute('width', txtW + pad * 2); tRect.setAttribute('height', txtH);
+  tRect.setAttribute('rx', r); tRect.setAttribute('ry', r);
+  tRect.setAttribute('class', 'pe-svg-plate');
+  g.appendChild(tRect);
+
+  // Main text
+  const tTxt = document.createElementNS('http://www.w3.org/2000/svg','text');
+  tTxt.setAttribute('x', tX + pad); tTxt.setAttribute('y', pad);
+  tTxt.setAttribute('font-family', `"${FONT}", monospace`);
+  tTxt.setAttribute('font-weight', '700');
+  tTxt.setAttribute('font-size', fSize);
+  tTxt.setAttribute('fill', '#111');
+  tTxt.setAttribute('dominant-baseline', 'hanging');
+  tTxt.textContent = raw;
+  g.appendChild(tTxt);
+
+  peSvg.appendChild(g);
+  peFloatSvgEl = g;
+  peSvg.classList.add('active');
+
+  // Store canvas coords
+  peFloatItem.canvasX = canvasX;
+  peFloatItem.canvasY = canvasY;
+
+  // Update pin button corner
+  peUpdatePinBtn();
+}
+
+// ── Drag the float group ──────────────────────────
+peSvg.addEventListener('pointerdown', e => {
+  if (!peFloatSvgEl) return;
+  // only trigger if clicking on the float group
+  if (!e.target.closest('.pe-svg-float')) return;
   e.preventDefault();
+  const coords = peSvgEvtCoords(e);
   peFloatDragging = true;
   peFloatStart = {
-    cx: e.clientX, cy: e.clientY,
-    lx: parseFloat(floatLabel.style.left) || 0,
-    ly: parseFloat(floatLabel.style.top)  || 0
+    svgX: peFloatItem.canvasX, svgY: peFloatItem.canvasY,
+    ex: coords.x, ey: coords.y
   };
-  floatLabel.setPointerCapture(e.pointerId);
+  peSvg.setPointerCapture(e.pointerId);
 });
 
-floatLabel.addEventListener('pointermove', e => {
+peSvg.addEventListener('pointermove', e => {
   if (!peFloatDragging || !peFloatStart) return;
-  const ar  = document.getElementById('pe-canvas-area').getBoundingClientRect();
-  const M   = 4;
-  const nx  = Math.max(M, Math.min(peFloatStart.lx + e.clientX - peFloatStart.cx, ar.width  - M));
-  const ny  = Math.max(M, Math.min(peFloatStart.ly + e.clientY - peFloatStart.cy, ar.height - M));
-  floatLabel.style.left = nx + 'px';
-  floatLabel.style.top  = ny + 'px';
-  // Update canvas coords: text starts at (nx + badgeWidth, ny)
-  if (peFloatItem) {
-    const cr     = peCanvas.getBoundingClientRect();
-    const sx     = peCanvas.width  / cr.width;
-    const sy     = peCanvas.height / cr.height;
-    const offX   = cr.left - ar.left;
-    const offY   = cr.top  - ar.top;
-    const badgeW = document.getElementById('pe-float-badge').offsetWidth + 4;
-    peFloatItem.canvasX = (nx + badgeW - offX) * sx;
-    peFloatItem.canvasY = (ny - offY) * sy;
-  }
-  // Update pin button corner
+  const coords = peSvgEvtCoords(e);
+  const nx = peFloatStart.svgX + (coords.x - peFloatStart.ex);
+  const ny = peFloatStart.svgY + (coords.y - peFloatStart.ey);
+  // Clamp within canvas bounds
+  const cx = Math.max(0, Math.min(nx, peCanvas.width  - 10));
+  const cy = Math.max(0, Math.min(ny, peCanvas.height - 10));
+  peFloatItem.canvasX = cx;
+  peFloatItem.canvasY = cy;
+  peFloatSvgEl.setAttribute('transform', `translate(${cx},${cy})`);
   peUpdatePinBtn();
 });
 
-floatLabel.addEventListener('pointerup', () => { peFloatDragging = false; });
+peSvg.addEventListener('pointerup', () => { peFloatDragging = false; });
 
-// 旋轉後重新計算 float label 顯示位置（canvasX/Y 已正確，重新換算 display 座標）
+// ── Four-corner pin button avoidance ─────────────
+function peUpdatePinBtn() {
+  if (!peFloatItem) return;
+  const ar  = document.getElementById('pe-canvas-area').getBoundingClientRect();
+  const cr  = peCanvas.getBoundingClientRect();
+  if (!cr.width) return;
+  const sx  = cr.width  / peCanvas.width;
+  const sy  = cr.height / peCanvas.height;
+  // Float position in screen coords (relative to canvas-area)
+  const fx  = peFloatItem.canvasX * sx + (cr.left - ar.left);
+  const fy  = peFloatItem.canvasY * sy + (cr.top  - ar.top);
+  const bw  = pinBtn.offsetWidth  || 80;
+  const bh  = pinBtn.offsetHeight || 34;
+  const M   = 10;
+  const inRight  = fx > ar.width  / 2;
+  const inBottom = fy > ar.height / 2;
+  pinBtn.style.left = (inRight  ? M : ar.width  - bw - M) + 'px';
+  pinBtn.style.top  = (inBottom ? M : ar.height - bh - M) + 'px';
+  pinBtn.classList.add('active');
+}
+
+// ── orientationchange: SVG auto-follows, pin btn recalc only ─────────────
 window.addEventListener('orientationchange', () => {
   setTimeout(() => {
-    const cr = peCanvas.getBoundingClientRect();
-    const ar = document.getElementById('pe-canvas-area').getBoundingClientRect();
-    if (!cr.width) return;
-    const sx = peCanvas.width  / cr.width;
-    const sy = peCanvas.height / cr.height;
-
-    // Reposition float label if active
-    if (peFloatItem && floatLabel.classList.contains('active')) {
-      const bx = peFloatItem.canvasX / sx + (cr.left - ar.left);
-      const by = peFloatItem.canvasY / sy + (cr.top  - ar.top);
-      floatLabel.style.left = Math.max(4, bx) + 'px';
-      floatLabel.style.top  = Math.max(4, by) + 'px';
-      peUpdatePinBtn();
-    }
-
-    // Reposition all pinned badges
-    peItems.forEach(it => {
-      const badge = document.getElementById('pe-badge-' + it.seqIdx);
-      if (!badge) return;
-      const bx = it.canvasX / sx + (cr.left - ar.left);
-      const by = it.canvasY / sy + (cr.top  - ar.top);
-      badge.style.left = bx + 'px';
-      badge.style.top  = by + 'px';
-    });
+    peSvgSync();
+    if (peFloatItem) peUpdatePinBtn();
   }, 300);
-});
+})
 
 // ── Pin: commit float label to canvas ───────────
 window.pePinLabel = function() {
@@ -4892,7 +4942,9 @@ window.pePinLabel = function() {
   peCtx.fillText(badgeText, badgeX + badgePad, badgeY + badgePad);
   peCtx.textBaseline = 'top';
 
-  floatLabel.classList.remove('active');
+  // Hide SVG float group
+  if (peFloatSvgEl) { peFloatSvgEl.remove(); peFloatSvgEl = null; }
+  peSvg.classList.remove('active');
   pinBtn.classList.remove('active');
   peFloatItem = null;
 
@@ -5077,9 +5129,11 @@ function peAddPhotoItemRow(seqIdx, price, qty) {
 }
 
 window.peRemoveItemRow = async function(rowId, seqIdx) {
-  // If this item is currently floating (not yet pinned), just cancel the float
+  // If this item is currently floating (not yet pinned), cancel the float
   if (peFloatItem && peFloatItem.seqIdx === seqIdx) {
-    floatLabel.classList.remove('active');
+    if (peFloatSvgEl) { peFloatSvgEl.remove(); peFloatSvgEl = null; }
+    peSvg.classList.remove('active');
+    pinBtn.classList.remove('active');
     peFloatItem = null;
     const el = document.getElementById('itemRow_' + rowId);
     if (el) el.remove();
@@ -5196,7 +5250,9 @@ window.peResetItems = function() {
 function peResetAll() {
   document.getElementById('pe-canvas-area').querySelectorAll('.pe-seq-badge').forEach(b => b.remove());
   peSeqBadges = []; peItems = [];
-  floatLabel.classList.remove('active');
+  // Clear SVG float
+  if (peFloatSvgEl) { peFloatSvgEl.remove(); peFloatSvgEl = null; }
+  peSvg.classList.remove('active');
   pinBtn.classList.remove('active');
   peFloatItem = null;
   document.getElementById('pe-item-list').innerHTML = '';
@@ -5388,6 +5444,7 @@ function peLoadImg(img) {
   peCtx.drawImage(img, 0, 0);
   peCanvas.style.display = 'block'; document.getElementById('pe-empty').style.display = 'none';
   peImageLoaded = true; peUndoStack = []; peRedoStack = []; peUpdHistBtns();
+  peSvgSync();
   window.peSetTool('label');
 }
 window.peSaveImage = function() {
