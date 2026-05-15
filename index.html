@@ -570,30 +570,18 @@
     user-select: none;
   }
   #pe-label-overlay.open { display: flex; }
-  #pe-label-drag-handle {
-    height: 18px;
-    background: #5affda;
-    border-radius: 5px 5px 0 0;
-    display: flex; align-items: center; justify-content: center;
-    gap: 4px; cursor: grab; flex-shrink: 0; touch-action: none;
-  }
-  #pe-label-drag-handle:active { cursor: grabbing; }
-  #pe-label-drag-handle span {
-    font-size: 9px; color: #111; font-weight: 700;
-    letter-spacing: 0.05em; pointer-events: none;
-  }
   #pe-label-input {
     font-family: 'Space Mono', monospace; font-weight: 700;
     background: rgba(0,0,0,.75); color: #fff;
     border: 1.5px solid #5affda; border-bottom: none;
-    border-radius: 0; padding: 3px 6px; outline: none;
-    min-width: 60px; max-width: 40vw; line-height: 1.3; display: block;
-    font-size: 14px;
+    border-radius: 5px 5px 0 0; padding: 2px 5px; outline: none;
+    min-width: 50px; max-width: 30vw; line-height: 1.2; display: block;
+    font-size: 11px;
   }
   #pe-label-confirm {
-    height: 24px; width: 100%;
+    height: 20px; width: 100%;
     background: #5affda; border: none; border-radius: 0 0 5px 5px;
-    color: #111; font-size: 11px; font-weight: 700; cursor: pointer;
+    color: #111; font-size: 10px; font-weight: 700; cursor: pointer;
     display: flex; align-items: center; justify-content: center;
     font-family: 'Noto Sans TC', sans-serif; transition: filter .15s;
   }
@@ -987,7 +975,6 @@
         </div>
         <canvas id="pe-canvas"></canvas>
         <div id="pe-label-overlay">
-          <div id="pe-label-drag-handle"><span>⠿ 拖移</span></div>
           <input id="pe-label-input" type="text" placeholder="單價×數量"
                  autocomplete="off" autocorrect="off" spellcheck="false"
                  oninput="peAutoResize(this)">
@@ -4639,7 +4626,16 @@ function peGetPos(e) {
 }
 peCanvas.addEventListener('pointerdown', e => {
   if (!peImageLoaded) return;
-  if (peTool === 'label') { e.preventDefault(); peOpenLabelAt(e); return; }
+  if (peTool === 'label') {
+    e.preventDefault();
+    // Block new input if a float label is waiting to be pinned
+    if (peFloatItem) {
+      const pin = document.getElementById('pe-float-pin');
+      if (pin) { pin.style.transform='scale(1.25)'; setTimeout(()=>{pin.style.transform='';},250); }
+      return;
+    }
+    peOpenLabelAt(e); return;
+  }
   if (peTool === 'pencil') {
     e.preventDefault(); peSaveHist(); peIsDrawing = true;
     [peLastX, peLastY] = peGetPos(e);
@@ -4800,13 +4796,28 @@ window.addEventListener('orientationchange', () => {
 // ── Pin: commit float label to canvas ───────────
 window.pePinLabel = function() {
   if (!peFloatItem) return;
-  const { price, qty, seqIdx, raw, canvasX, canvasY } = peFloatItem;
+  const { price, qty, seqIdx, raw } = peFloatItem;
+
+  // Read the EXACT current display position of the float label
+  const fl  = document.getElementById('pe-float-label');
+  const cx  = parseFloat(fl.style.left) || 0;
+  const cy  = parseFloat(fl.style.top)  || 0;
+
+  // Convert display position → canvas pixel coordinates
+  const cr  = peCanvas.getBoundingClientRect();
+  const ar  = document.getElementById('pe-canvas-area').getBoundingClientRect();
+  const sx  = peCanvas.width  / cr.width;
+  const sy  = peCanvas.height / cr.height;
+  const offX = cr.left - ar.left;
+  const offY = cr.top  - ar.top;
+  const canvasX = (cx - offX) * sx;
+  const canvasY = (cy - offY) * sy;
 
   // Save history before drawing
   peSaveHist();
   peItems.push({ price, qty, seqIdx, canvasX, canvasY, raw });
 
-  // Draw text on canvas
+  // Draw text on canvas at pinned position
   peCtx.font         = '700 ' + peFontPx + 'px "Space Mono", monospace';
   peCtx.fillStyle    = peLabelClr;
   peCtx.textBaseline = 'top';
@@ -4815,19 +4826,35 @@ window.pePinLabel = function() {
   peCtx.fillText(raw, canvasX, canvasY);
   peCtx.shadowBlur   = 0;
 
-  // Place permanent badge at pinned position
-  const cr   = peCanvas.getBoundingClientRect();
-  const ar   = document.getElementById('pe-canvas-area').getBoundingClientRect();
-  const sx   = peCanvas.width  / cr.width;
-  const sy   = peCanvas.height / cr.height;
-  const bx   = canvasX / sx + (cr.left - ar.left);
-  const by   = canvasY / sy + (cr.top  - ar.top);
+  // Draw sequence number badge onto canvas (so it's saved with the image)
+  const badgeFontPx = Math.max(24, Math.round(peFontPx * 0.35));
+  const badgePad    = Math.round(badgeFontPx * 0.3);
+  const badgeText   = (seqIdx + 1) + '.';
+  peCtx.font        = '700 ' + badgeFontPx + 'px "Space Mono", monospace';
+  peCtx.textBaseline = 'bottom';
+  const badgeW      = peCtx.measureText(badgeText).width + badgePad * 2;
+  const badgeH      = badgeFontPx + badgePad * 2;
+  const badgeX      = canvasX;
+  const badgeY      = canvasY - badgeH;
+  // Badge background
+  peCtx.fillStyle   = '#f5c542';
+  peCtx.beginPath();
+  const r = badgeH * 0.35;
+  peCtx.roundRect(badgeX, badgeY, badgeW, badgeH, r);
+  peCtx.fill();
+  // Badge text
+  peCtx.fillStyle   = '#111';
+  peCtx.shadowColor = 'rgba(0,0,0,0)';
+  peCtx.fillText(badgeText, badgeX + badgePad, badgeY + badgeH - badgePad);
+  peCtx.textBaseline = 'top';
+
+  // Place permanent badge at same display position
   const badge = document.createElement('div');
   badge.className   = 'pe-seq-badge';
   badge.textContent = (seqIdx + 1) + '.';
   badge.id          = 'pe-badge-' + seqIdx;
-  badge.style.left  = bx + 'px';
-  badge.style.top   = by + 'px';
+  badge.style.left  = cx + 'px';
+  badge.style.top   = cy + 'px';
   document.getElementById('pe-canvas-area').appendChild(badge);
   peSeqBadges.push(badge);
 
@@ -5047,6 +5074,7 @@ window.peRemoveItemRow = async function(rowId, seqIdx) {
     await peRestoreURL(snapshot);
     // Redraw all remaining labels on top of the restored canvas
     peItems.forEach(it => {
+      // Draw label text
       peCtx.font         = '700 ' + peFontPx + 'px "Space Mono", monospace';
       peCtx.fillStyle    = peLabelClr;
       peCtx.textBaseline = 'top';
@@ -5054,6 +5082,22 @@ window.peRemoveItemRow = async function(rowId, seqIdx) {
       peCtx.shadowBlur   = 5;
       peCtx.fillText(it.raw, it.canvasX, it.canvasY);
       peCtx.shadowBlur   = 0;
+      // Draw badge
+      const bfPx = Math.max(24, Math.round(peFontPx * 0.35));
+      const bPad = Math.round(bfPx * 0.3);
+      const bTxt = (it.seqIdx + 1) + '.';
+      peCtx.font = '700 ' + bfPx + 'px "Space Mono", monospace';
+      peCtx.textBaseline = 'bottom';
+      const bW = peCtx.measureText(bTxt).width + bPad * 2;
+      const bH = bfPx + bPad * 2;
+      peCtx.fillStyle = '#f5c542';
+      peCtx.beginPath();
+      peCtx.roundRect(it.canvasX, it.canvasY - bH, bW, bH, bH * 0.35);
+      peCtx.fill();
+      peCtx.fillStyle = '#111';
+      peCtx.shadowColor = 'rgba(0,0,0,0)';
+      peCtx.fillText(bTxt, it.canvasX + bPad, it.canvasY - bPad);
+      peCtx.textBaseline = 'top';
     });
   }
   peUpdHistBtns();
@@ -5087,6 +5131,15 @@ window.peGenerateOrder = function() {
     added++;
   });
   if (added === 0) { alert('請確認每行都有填品項名稱和金額'); return; }
+
+  // 自動下載當前編輯照片
+  if (peImageLoaded) {
+    const link = document.createElement('a');
+    link.download = 'order_photo_' + Date.now() + '.png';
+    link.href = peCanvas.toDataURL('image/png');
+    link.click();
+  }
+
   peResetAll();
   renderTable();
   document.querySelector('.panel.full').scrollIntoView({ behavior: 'smooth' });
