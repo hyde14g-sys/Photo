@@ -4519,34 +4519,146 @@ function peAddPhotoItemRow(seqIdx, price, qty) {
   const list = document.getElementById('pe-item-list');
   itemRowCount++;
   const id = itemRowCount;
+
   const div = document.createElement('div');
-  div.className = 'item-row'; div.id = 'itemRow_' + id; div.dataset.peSeq = seqIdx;
-  div.innerHTML = '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;width:100%">'
-    + '<span class="pe-seq-num">' + (seqIdx + 1) + '.</span>'
-    + '<span style="font-size:0.78rem;color:var(--muted);white-space:nowrap">品項</span>'
-    + '<input id="prefix_' + id + '" placeholder="編號/備注..." style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:0.82rem;padding:5px 8px;outline:none;font-family:'Noto Sans TC',sans-serif;" oninput="updateItemName(' + id + ')" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">'
-    + '<div style="position:relative">'
-    + '<button id="catBtn_' + id + '" onclick="toggleCatDropdown(' + id + ')" style="padding:5px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:0.82rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif;white-space:nowrap;display:flex;align-items:center;gap:5px;"><span id="catLabel_' + id + '">選擇品項 ▼</span></button>'
-    + '<div id="catDropdown_' + id + '" style="display:none;position:absolute;top:100%;left:0;z-index:3000;width:220px;background:var(--surface);border:1px solid var(--accent);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.5);padding:8px;margin-top:4px">'
-    + '<div id="catList_' + id + '" style="max-height:220px;overflow-y:auto;margin-bottom:6px"></div>'
-    + '<div style="border-top:1px dashed var(--border);padding-top:6px;display:flex;gap:6px">'
-    + '<button onclick="addCategoryFromRow(' + id + ')" style="flex:1;padding:6px 8px;border-radius:6px;border:1px solid #4ade80;background:rgba(74,222,128,0.1);color:#4ade80;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;">＋ 新增</button>'
-    + '<button onclick="showDeleteCategoryModal(' + id + ')" style="flex:1;padding:6px 8px;border-radius:6px;border:1px solid #fb7185;background:rgba(251,113,133,0.1);color:#fb7185;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;">🗑 刪除</button>'
-    + '</div></div></div>'
-    + '<span id="itemNamePreview_' + id + '" style="font-size:0.82rem;color:var(--accent);font-weight:700;min-width:60px"></span>'
-    + '<button id="preorderBtn_' + id + '" onclick="togglePreorder(' + id + ')" style="padding:5px 10px;border-radius:6px;border:1px solid #ccff00;background:transparent;color:#ccff00;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;white-space:nowrap;transition:all 0.15s;">預購</button>'
-    + '<span style="font-size:0.78rem;color:var(--muted)">單價</span>'
-    + '<input id="price_' + id + '" class="item-num-input" style="width:90px" type="text" inputmode="numeric" value="' + price + '">'
-    + '<span style="font-size:0.78rem;color:var(--muted)">數量</span>'
-    + '<input id="qty_' + id + '" class="item-num-input" type="text" inputmode="numeric" value="' + qty + '">'
-    + '<span style="font-size:0.78rem;color:#5affda;font-family:'Space Mono',monospace" id="subtotal_' + id + '">= $' + (price * qty) + '</span>'
-    + '<button onclick="peRemoveItemRow(' + id + ',' + seqIdx + ')" style="padding:4px 8px;border-radius:5px;border:1px solid #fb7185;background:transparent;color:#fb7185;font-size:0.78rem;cursor:pointer;">↩ 跳回</button>'
-    + '</div>';
+  div.className = 'item-row';
+  div.id = 'itemRow_' + id;
+  div.dataset.peSeq = seqIdx;
+
+  // ── outer wrapper ──────────────────────────────────────────
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'display:flex;gap:6px;align-items:center;flex-wrap:wrap;width:100%';
+
+  // seq number
+  const seqSpan = document.createElement('span');
+  seqSpan.className = 'pe-seq-num';
+  seqSpan.textContent = (seqIdx + 1) + '.';
+  wrap.appendChild(seqSpan);
+
+  // label
+  const lbl = document.createElement('span');
+  lbl.style.cssText = 'font-size:0.78rem;color:var(--muted);white-space:nowrap';
+  lbl.textContent = '品項';
+  wrap.appendChild(lbl);
+
+  // prefix input
+  const prefixInp = document.createElement('input');
+  prefixInp.id = 'prefix_' + id;
+  prefixInp.placeholder = '編號/備注...';
+  prefixInp.style.cssText = 'width:80px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:0.82rem;padding:5px 8px;outline:none;font-family:inherit';
+  prefixInp.setAttribute('oninput', 'updateItemName(' + id + ')');
+  prefixInp.addEventListener('focus', () => prefixInp.style.borderColor = 'var(--accent)');
+  prefixInp.addEventListener('blur',  () => prefixInp.style.borderColor = 'var(--border)');
+  wrap.appendChild(prefixInp);
+
+  // category dropdown wrapper
+  const catWrap = document.createElement('div');
+  catWrap.style.position = 'relative';
+
+  const catBtn = document.createElement('button');
+  catBtn.id = 'catBtn_' + id;
+  catBtn.style.cssText = 'padding:5px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:0.82rem;cursor:pointer;font-family:inherit;white-space:nowrap;display:flex;align-items:center;gap:5px;';
+  catBtn.setAttribute('onclick', 'toggleCatDropdown(' + id + ')');
+  const catLabel = document.createElement('span');
+  catLabel.id = 'catLabel_' + id;
+  catLabel.textContent = '選擇品項 ▼';
+  catBtn.appendChild(catLabel);
+  catWrap.appendChild(catBtn);
+
+  const catDD = document.createElement('div');
+  catDD.id = 'catDropdown_' + id;
+  catDD.style.cssText = 'display:none;position:absolute;top:100%;left:0;z-index:3000;width:220px;background:var(--surface);border:1px solid var(--accent);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.5);padding:8px;margin-top:4px';
+
+  const catList = document.createElement('div');
+  catList.id = 'catList_' + id;
+  catList.style.cssText = 'max-height:220px;overflow-y:auto;margin-bottom:6px';
+  catDD.appendChild(catList);
+
+  const catBtnRow = document.createElement('div');
+  catBtnRow.style.cssText = 'border-top:1px dashed var(--border);padding-top:6px;display:flex;gap:6px';
+  const addCatBtn = document.createElement('button');
+  addCatBtn.style.cssText = 'flex:1;padding:6px 8px;border-radius:6px;border:1px solid #4ade80;background:rgba(74,222,128,0.1);color:#4ade80;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:inherit';
+  addCatBtn.textContent = '＋ 新增';
+  addCatBtn.setAttribute('onclick', 'addCategoryFromRow(' + id + ')');
+  const delCatBtn = document.createElement('button');
+  delCatBtn.style.cssText = 'flex:1;padding:6px 8px;border-radius:6px;border:1px solid #fb7185;background:rgba(251,113,133,0.1);color:#fb7185;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:inherit';
+  delCatBtn.textContent = '🗑 刪除';
+  delCatBtn.setAttribute('onclick', 'showDeleteCategoryModal(' + id + ')');
+  catBtnRow.appendChild(addCatBtn);
+  catBtnRow.appendChild(delCatBtn);
+  catDD.appendChild(catBtnRow);
+  catWrap.appendChild(catDD);
+  wrap.appendChild(catWrap);
+
+  // item name preview
+  const namePreview = document.createElement('span');
+  namePreview.id = 'itemNamePreview_' + id;
+  namePreview.style.cssText = 'font-size:0.82rem;color:var(--accent);font-weight:700;min-width:60px';
+  wrap.appendChild(namePreview);
+
+  // preorder button
+  const preBtn = document.createElement('button');
+  preBtn.id = 'preorderBtn_' + id;
+  preBtn.style.cssText = 'padding:5px 10px;border-radius:6px;border:1px solid #ccff00;background:transparent;color:#ccff00;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;transition:all 0.15s';
+  preBtn.textContent = '預購';
+  preBtn.setAttribute('onclick', 'togglePreorder(' + id + ')');
+  wrap.appendChild(preBtn);
+
+  // price
+  const priceLbl = document.createElement('span');
+  priceLbl.style.cssText = 'font-size:0.78rem;color:var(--muted)';
+  priceLbl.textContent = '單價';
+  wrap.appendChild(priceLbl);
+
+  const priceInp = document.createElement('input');
+  priceInp.id = 'price_' + id;
+  priceInp.className = 'item-num-input';
+  priceInp.style.width = '90px';
+  priceInp.type = 'text';
+  priceInp.inputMode = 'numeric';
+  priceInp.value = price;
+  wrap.appendChild(priceInp);
+
+  // qty
+  const qtyLbl = document.createElement('span');
+  qtyLbl.style.cssText = 'font-size:0.78rem;color:var(--muted)';
+  qtyLbl.textContent = '數量';
+  wrap.appendChild(qtyLbl);
+
+  const qtyInp = document.createElement('input');
+  qtyInp.id = 'qty_' + id;
+  qtyInp.className = 'item-num-input';
+  qtyInp.type = 'text';
+  qtyInp.inputMode = 'numeric';
+  qtyInp.value = qty;
+  wrap.appendChild(qtyInp);
+
+  // subtotal
+  const subtotal = document.createElement('span');
+  subtotal.id = 'subtotal_' + id;
+  subtotal.style.cssText = 'font-size:0.78rem;color:#5affda;font-family:monospace';
+  subtotal.textContent = '= $' + (price * qty);
+  wrap.appendChild(subtotal);
+
+  // back button
+  const backBtn = document.createElement('button');
+  backBtn.style.cssText = 'padding:4px 8px;border-radius:5px;border:1px solid #fb7185;background:transparent;color:#fb7185;font-size:0.78rem;cursor:pointer';
+  backBtn.textContent = '↩ 跳回';
+  backBtn.setAttribute('onclick', 'peRemoveItemRow(' + id + ',' + seqIdx + ')');
+  wrap.appendChild(backBtn);
+
+  div.appendChild(wrap);
   list.appendChild(div);
   renderItemCategories(id, '');
-  const qEl = document.getElementById('qty_' + id), pEl = document.getElementById('price_' + id);
-  const upd = () => { const q=parseFloat(qEl.value)||0, p=parseFloat(pEl.value)||0; const s=document.getElementById('subtotal_'+id); if(s) s.textContent=q&&p?'= $'+(q*p):''; };
-  qEl.addEventListener('input', upd); pEl.addEventListener('input', upd);
+
+  // live subtotal
+  const upd = () => {
+    const q = parseFloat(qtyInp.value)   || 0;
+    const p = parseFloat(priceInp.value) || 0;
+    subtotal.textContent = (q && p) ? '= $' + (q * p) : '';
+  };
+  qtyInp.addEventListener('input', upd);
+  priceInp.addEventListener('input', upd);
 }
 
 window.peRemoveItemRow = function(rowId, seqIdx) {
