@@ -593,46 +593,58 @@
   }
   #pe-crop-modal.open { display: flex; }
   #pe-crop-modal h3 { font-size: 1rem; font-weight: 700; color: var(--accent); flex-shrink: 0; }
-  #pe-crop-modal p  { font-size: 0.8rem; color: var(--muted); flex-shrink: 0; }
+  #pe-crop-modal p  { font-size: 0.8rem; color: var(--muted); flex-shrink: 0; text-align: center; }
 
   #pe-crop-wrap {
     position: relative;
     flex-shrink: 1;
     overflow: hidden;
-    cursor: crosshair;
-    /* size set by JS */
+    touch-action: none;
   }
   #pe-crop-img {
     display: block;
     max-width: 100%;
-    max-height: calc(100dvh - 180px);
+    max-height: calc(100dvh - 190px);
     pointer-events: none;
     user-select: none;
+    -webkit-user-drag: none;
   }
-  /* dark overlay around selection */
-  #pe-crop-overlay {
-    position: absolute; inset: 0; pointer-events: none;
+
+  /* dark mask — 4 rects drawn via clip-path in JS, we use canvas overlay instead */
+  #pe-crop-mask {
+    position: absolute; inset: 0;
+    pointer-events: none;
   }
-  /* the selection box */
+
+  /* the bright selection frame */
   #pe-crop-sel {
     position: absolute;
     border: 2px solid var(--accent);
-    box-shadow: 0 0 0 9999px rgba(0,0,0,0.55);
     pointer-events: none;
-    display: none;
+    box-sizing: border-box;
   }
-  /* corner handles */
-  .pe-crop-handle {
+
+  /* 8 handles: 4 corners + 4 edges */
+  .pch {
     position: absolute;
-    width: 16px; height: 16px;
+    width: 22px; height: 22px;
     background: var(--accent);
-    border-radius: 2px;
-    pointer-events: none;
+    border-radius: 3px;
+    transform: translate(-50%, -50%);
+    touch-action: none;
+    cursor: pointer;
+    z-index: 10;
   }
-  .pe-crop-handle.tl { top: -4px; left: -4px; cursor: nw-resize; }
-  .pe-crop-handle.tr { top: -4px; right: -4px; cursor: ne-resize; }
-  .pe-crop-handle.bl { bottom: -4px; left: -4px; cursor: sw-resize; }
-  .pe-crop-handle.br { bottom: -4px; right: -4px; cursor: se-resize; }
+  /* corner positions */
+  .pch[data-h="tl"] { top:0;   left:0;   cursor: nw-resize; }
+  .pch[data-h="tr"] { top:0;   left:100%; cursor: ne-resize; }
+  .pch[data-h="bl"] { top:100%; left:0;  cursor: sw-resize; }
+  .pch[data-h="br"] { top:100%; left:100%;cursor: se-resize; }
+  /* edge positions */
+  .pch[data-h="tc"] { top:0;    left:50%; cursor: n-resize; }
+  .pch[data-h="bc"] { top:100%; left:50%; cursor: s-resize; }
+  .pch[data-h="ml"] { top:50%;  left:0;   cursor: w-resize; }
+  .pch[data-h="mr"] { top:50%;  left:100%;cursor: e-resize; }
 
   #pe-crop-actions {
     display: flex; gap: 10px; flex-wrap: wrap;
@@ -970,14 +982,19 @@
 <!-- Crop Modal (拍照後裁剪) -->
 <div id="pe-crop-modal">
   <h3>✂️ 裁剪照片</h3>
-  <p>拖拉選取要保留的範圍</p>
+  <p>拖動邊框或角落調整範圍</p>
   <div id="pe-crop-wrap">
     <img id="pe-crop-img" src="" alt="">
+    <canvas id="pe-crop-mask"></canvas>
     <div id="pe-crop-sel">
-      <div class="pe-crop-handle tl"></div>
-      <div class="pe-crop-handle tr"></div>
-      <div class="pe-crop-handle bl"></div>
-      <div class="pe-crop-handle br"></div>
+      <div class="pch" data-h="tl"></div>
+      <div class="pch" data-h="tc"></div>
+      <div class="pch" data-h="tr"></div>
+      <div class="pch" data-h="ml"></div>
+      <div class="pch" data-h="mr"></div>
+      <div class="pch" data-h="bl"></div>
+      <div class="pch" data-h="bc"></div>
+      <div class="pch" data-h="br"></div>
     </div>
   </div>
   <div id="pe-crop-actions">
@@ -4932,89 +4949,133 @@ window.peCapturePhoto = function() {
 };
 
 // ── CROP ─────────────────────────────────────────
-let peCropDataURL = null;
-let peCropStart   = null;
-let peCropRect    = { x:0, y:0, w:0, h:0 };
-let peCropDragging = false;
-
-function peOpenCrop(dataURL) {
-  peCropDataURL = dataURL;
-  peCropRect    = { x:0, y:0, w:0, h:0 };
-  const img = document.getElementById('pe-crop-img');
-  img.src = dataURL;
-  img.onload = () => {
-    // reset selection
-    const sel = document.getElementById('pe-crop-sel');
-    sel.style.display = 'none';
-    document.getElementById('pe-crop-modal').classList.add('open');
-  };
-}
+let peCropDataURL  = null;
+// crop rect in display px, relative to cropImg
+let peCR = { x:0, y:0, w:0, h:0 };
+let peCropActive   = null; // current handle being dragged
+let peCropPtrStart = null; // { clientX, clientY, rect: clone of peCR }
+const CROP_MIN     = 30;   // minimum px size
 
 const cropWrap = document.getElementById('pe-crop-wrap');
 const cropSel  = document.getElementById('pe-crop-sel');
 const cropImg  = document.getElementById('pe-crop-img');
+const cropMask = document.getElementById('pe-crop-mask');
 
-function peGetCropPos(e) {
-  const r = cropImg.getBoundingClientRect();
-  const src = e.touches ? e.touches[0] : e;
-  return {
-    x: Math.max(0, Math.min(src.clientX - r.left, r.width)),
-    y: Math.max(0, Math.min(src.clientY - r.top,  r.height))
+// Draw dark mask around selection
+function peCropDrawMask() {
+  const iw = cropImg.offsetWidth;
+  const ih = cropImg.offsetHeight;
+  cropMask.width  = iw;
+  cropMask.height = ih;
+  const c = cropMask.getContext('2d');
+  c.clearRect(0, 0, iw, ih);
+  c.fillStyle = 'rgba(0,0,0,0.55)';
+  // top
+  c.fillRect(0, 0, iw, peCR.y);
+  // bottom
+  c.fillRect(0, peCR.y + peCR.h, iw, ih - peCR.y - peCR.h);
+  // left
+  c.fillRect(0, peCR.y, peCR.x, peCR.h);
+  // right
+  c.fillRect(peCR.x + peCR.w, peCR.y, iw - peCR.x - peCR.w, peCR.h);
+}
+
+// Position the selection div + handles
+function peCropApplyRect() {
+  cropSel.style.left   = peCR.x + 'px';
+  cropSel.style.top    = peCR.y + 'px';
+  cropSel.style.width  = peCR.w + 'px';
+  cropSel.style.height = peCR.h + 'px';
+  peCropDrawMask();
+}
+
+function peOpenCrop(dataURL) {
+  peCropDataURL = dataURL;
+  const img = document.getElementById('pe-crop-img');
+  img.src = dataURL;
+  img.onload = () => {
+    document.getElementById('pe-crop-modal').classList.add('open');
+    // wait a frame for layout
+    requestAnimationFrame(() => {
+      const iw = cropImg.offsetWidth;
+      const ih = cropImg.offsetHeight;
+      cropMask.style.position = 'absolute';
+      cropMask.style.top  = '0'; cropMask.style.left = '0';
+      cropMask.style.pointerEvents = 'none';
+      // default: full image selected with 8px inset
+      const PAD = 8;
+      peCR = { x: PAD, y: PAD, w: iw - PAD*2, h: ih - PAD*2 };
+      peCropApplyRect();
+    });
   };
 }
 
-cropWrap.addEventListener('pointerdown', e => {
-  if (e.target.classList.contains('pe-crop-handle')) return;
-  peCropDragging = true;
-  peCropStart    = peGetCropPos(e);
-  cropSel.style.display = 'block';
-  cropWrap.setPointerCapture(e.pointerId);
+// Which edges each handle moves
+const HANDLE_MAP = {
+  tl: ['l','t'], tc: ['t'],    tr: ['r','t'],
+  ml: ['l'],                   mr: ['r'],
+  bl: ['l','b'], bc: ['b'],    br: ['r','b']
+};
+
+// Attach pointer events to each handle
+cropSel.querySelectorAll('.pch').forEach(h => {
+  h.addEventListener('pointerdown', e => {
+    e.stopPropagation(); e.preventDefault();
+    peCropActive   = h.dataset.h;
+    peCropPtrStart = { cx: e.clientX, cy: e.clientY, rect: { ...peCR } };
+    h.setPointerCapture(e.pointerId);
+  });
+  h.addEventListener('pointermove', e => {
+    if (peCropActive !== h.dataset.h) return;
+    const iw  = cropImg.offsetWidth;
+    const ih  = cropImg.offsetHeight;
+    const dx  = e.clientX - peCropPtrStart.cx;
+    const dy  = e.clientY - peCropPtrStart.cy;
+    const r0  = peCropPtrStart.rect;
+    let { x, y, w, h: hh } = r0;
+    const edges = HANDLE_MAP[peCropActive];
+
+    if (edges.includes('l')) {
+      const nx = Math.max(0, Math.min(r0.x + dx, r0.x + r0.w - CROP_MIN));
+      w = r0.w - (nx - r0.x); x = nx;
+    }
+    if (edges.includes('r')) {
+      w = Math.max(CROP_MIN, Math.min(r0.w + dx, iw - r0.x));
+    }
+    if (edges.includes('t')) {
+      const ny = Math.max(0, Math.min(r0.y + dy, r0.y + r0.h - CROP_MIN));
+      hh = r0.h - (ny - r0.y); y = ny;
+    }
+    if (edges.includes('b')) {
+      hh = Math.max(CROP_MIN, Math.min(r0.h + dy, ih - r0.y));
+    }
+    peCR = { x, y, w, h: hh };
+    peCropApplyRect();
+  });
+  h.addEventListener('pointerup', () => { peCropActive = null; });
 });
-cropWrap.addEventListener('pointermove', e => {
-  if (!peCropDragging || !peCropStart) return;
-  const cur = peGetCropPos(e);
-  const x = Math.min(peCropStart.x, cur.x);
-  const y = Math.min(peCropStart.y, cur.y);
-  const w = Math.abs(cur.x - peCropStart.x);
-  const h = Math.abs(cur.y - peCropStart.y);
-  cropSel.style.left   = x + 'px';
-  cropSel.style.top    = y + 'px';
-  cropSel.style.width  = w + 'px';
-  cropSel.style.height = h + 'px';
-  peCropRect = { x, y, w, h };
-});
-cropWrap.addEventListener('pointerup', () => { peCropDragging = false; });
 
 window.peCropConfirm = function() {
-  if (peCropRect.w < 10 || peCropRect.h < 10) {
-    alert('請先拖拉選取裁剪範圍'); return;
-  }
   const dispRect = cropImg.getBoundingClientRect();
-  // scale display coords → actual image pixel coords
-  const natW  = cropImg.naturalWidth;
-  const natH  = cropImg.naturalHeight;
-  const sx    = natW / dispRect.width;
-  const sy    = natH / dispRect.height;
-  const px    = Math.round(peCropRect.x * sx);
-  const py    = Math.round(peCropRect.y * sy);
-  const pw    = Math.round(peCropRect.w * sx);
-  const ph    = Math.round(peCropRect.h * sy);
+  const sx = cropImg.naturalWidth  / cropImg.offsetWidth;
+  const sy = cropImg.naturalHeight / cropImg.offsetHeight;
+  const px = Math.round(peCR.x * sx);
+  const py = Math.round(peCR.y * sy);
+  const pw = Math.max(1, Math.round(peCR.w * sx));
+  const ph = Math.max(1, Math.round(peCR.h * sy));
 
-  const tmp   = document.createElement('canvas');
-  tmp.width   = pw; tmp.height = ph;
-  const tctx  = tmp.getContext('2d');
-  const full  = document.getElementById('pe-capture-canvas');
-  // draw cropped region
-  tctx.drawImage(full, px, py, pw, ph, 0, 0, pw, ph);
+  const tmp  = document.createElement('canvas');
+  tmp.width  = pw; tmp.height = ph;
+  const full = document.getElementById('pe-capture-canvas');
+  tmp.getContext('2d').drawImage(full, px, py, pw, ph, 0, 0, pw, ph);
 
-  const cropped = new Image();
-  cropped.onload = () => { peLoadImg(cropped); };
-  cropped.src = tmp.toDataURL('image/png');
+  const out = new Image();
+  out.onload = () => { peLoadImg(out); };
+  out.src = tmp.toDataURL('image/png');
   document.getElementById('pe-crop-modal').classList.remove('open');
 };
 
 window.peCropSkip = function() {
-  // use full photo without cropping
   const img = new Image();
   img.onload = () => { peLoadImg(img); };
   img.src = peCropDataURL;
