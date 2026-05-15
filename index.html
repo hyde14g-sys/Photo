@@ -567,8 +567,88 @@
   #pe-label-overlay {
     display: none; position: absolute; z-index: 50;
     flex-direction: column; align-items: stretch;
+    cursor: grab;
+    user-select: none;
   }
   #pe-label-overlay.open { display: flex; }
+  #pe-label-drag-handle {
+    height: 22px;
+    background: #5affda;
+    border-radius: 6px 6px 0 0;
+    display: flex; align-items: center; justify-content: center;
+    gap: 5px; cursor: grab; flex-shrink: 0;
+  }
+  #pe-label-drag-handle:active { cursor: grabbing; }
+  #pe-label-drag-handle span {
+    font-size: 10px; color: #111; font-weight: 700;
+    letter-spacing: 0.06em; pointer-events: none;
+  }
+
+  /* ── Crop Modal ── */
+  #pe-crop-modal {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,.92); z-index: 2100;
+    flex-direction: column; align-items: center;
+    justify-content: center; gap: 12px; padding: 16px;
+  }
+  #pe-crop-modal.open { display: flex; }
+  #pe-crop-modal h3 { font-size: 1rem; font-weight: 700; color: var(--accent); flex-shrink: 0; }
+  #pe-crop-modal p  { font-size: 0.8rem; color: var(--muted); flex-shrink: 0; }
+
+  #pe-crop-wrap {
+    position: relative;
+    flex-shrink: 1;
+    overflow: hidden;
+    cursor: crosshair;
+    /* size set by JS */
+  }
+  #pe-crop-img {
+    display: block;
+    max-width: 100%;
+    max-height: calc(100dvh - 180px);
+    pointer-events: none;
+    user-select: none;
+  }
+  /* dark overlay around selection */
+  #pe-crop-overlay {
+    position: absolute; inset: 0; pointer-events: none;
+  }
+  /* the selection box */
+  #pe-crop-sel {
+    position: absolute;
+    border: 2px solid var(--accent);
+    box-shadow: 0 0 0 9999px rgba(0,0,0,0.55);
+    pointer-events: none;
+    display: none;
+  }
+  /* corner handles */
+  .pe-crop-handle {
+    position: absolute;
+    width: 16px; height: 16px;
+    background: var(--accent);
+    border-radius: 2px;
+    pointer-events: none;
+  }
+  .pe-crop-handle.tl { top: -4px; left: -4px; cursor: nw-resize; }
+  .pe-crop-handle.tr { top: -4px; right: -4px; cursor: ne-resize; }
+  .pe-crop-handle.bl { bottom: -4px; left: -4px; cursor: sw-resize; }
+  .pe-crop-handle.br { bottom: -4px; right: -4px; cursor: se-resize; }
+
+  #pe-crop-actions {
+    display: flex; gap: 10px; flex-wrap: wrap;
+    justify-content: center; flex-shrink: 0;
+  }
+  .pe-crop-btn {
+    padding: 10px 20px; border-radius: 8px; border: 1.5px solid;
+    font-family: 'Noto Sans TC', sans-serif; font-size: 0.85rem;
+    cursor: pointer; transition: all .2s; white-space: nowrap;
+  }
+  .pe-crop-btn.confirm { background: var(--accent); border-color: var(--accent); color: #111; font-weight: 700; }
+  .pe-crop-btn.confirm:hover { filter: brightness(1.1); }
+  .pe-crop-btn.skip    { background: transparent; border-color: var(--border); color: var(--text); }
+  .pe-crop-btn.skip:hover { border-color: #5affda; color: #5affda; }
+  .pe-crop-btn.cancel  { background: transparent; border-color: var(--border); color: var(--muted); }
+  .pe-crop-btn.cancel:hover { border-color: var(--accent2); color: var(--accent2); }
   #pe-label-input {
     font-family: 'Space Mono', monospace; font-weight: 700;
     background: rgba(0,0,0,.75); color: #fff;
@@ -846,6 +926,7 @@
         </div>
         <canvas id="pe-canvas"></canvas>
         <div id="pe-label-overlay">
+          <div id="pe-label-drag-handle"><span>⠿ 拖移</span></div>
           <input id="pe-label-input" type="text" placeholder="單價×數量 例: 350×2"
                  autocomplete="off" autocorrect="off" spellcheck="false"
                  oninput="peAutoResize(this)">
@@ -886,6 +967,26 @@
     </div>
   </div>
 </div>
+<!-- Crop Modal (拍照後裁剪) -->
+<div id="pe-crop-modal">
+  <h3>✂️ 裁剪照片</h3>
+  <p>拖拉選取要保留的範圍</p>
+  <div id="pe-crop-wrap">
+    <img id="pe-crop-img" src="" alt="">
+    <div id="pe-crop-sel">
+      <div class="pe-crop-handle tl"></div>
+      <div class="pe-crop-handle tr"></div>
+      <div class="pe-crop-handle bl"></div>
+      <div class="pe-crop-handle br"></div>
+    </div>
+  </div>
+  <div id="pe-crop-actions">
+    <button class="pe-crop-btn confirm" onclick="peCropConfirm()">✓ 確認裁剪</button>
+    <button class="pe-crop-btn skip"    onclick="peCropSkip()">→ 不裁剪直接使用</button>
+    <button class="pe-crop-btn cancel"  onclick="peCropCancel()">✕ 取消</button>
+  </div>
+</div>
+
 <input type="file" id="pe-file-input" accept="image/*" style="display:none" onchange="peLoadFile(event)">
 <canvas id="pe-capture-canvas" style="display:none"></canvas>
 
@@ -4825,10 +4926,145 @@ window.peCapturePhoto = function() {
   cap.getContext('2d').drawImage(video, 0, 0, cap.width, cap.height);
   const flash = document.createElement('div'); flash.className = 'pe-flash';
   document.body.appendChild(flash); setTimeout(() => flash.remove(), 400);
-  const img = new Image();
-  img.onload = () => { peLoadImg(img); window.peCloseCamera(); };
-  img.src = cap.toDataURL('image/jpeg', 0.95);
+  // 拍照後進裁剪流程
+  window.peCloseCamera();
+  peOpenCrop(cap.toDataURL('image/jpeg', 0.95));
 };
+
+// ── CROP ─────────────────────────────────────────
+let peCropDataURL = null;
+let peCropStart   = null;
+let peCropRect    = { x:0, y:0, w:0, h:0 };
+let peCropDragging = false;
+
+function peOpenCrop(dataURL) {
+  peCropDataURL = dataURL;
+  peCropRect    = { x:0, y:0, w:0, h:0 };
+  const img = document.getElementById('pe-crop-img');
+  img.src = dataURL;
+  img.onload = () => {
+    // reset selection
+    const sel = document.getElementById('pe-crop-sel');
+    sel.style.display = 'none';
+    document.getElementById('pe-crop-modal').classList.add('open');
+  };
+}
+
+const cropWrap = document.getElementById('pe-crop-wrap');
+const cropSel  = document.getElementById('pe-crop-sel');
+const cropImg  = document.getElementById('pe-crop-img');
+
+function peGetCropPos(e) {
+  const r = cropImg.getBoundingClientRect();
+  const src = e.touches ? e.touches[0] : e;
+  return {
+    x: Math.max(0, Math.min(src.clientX - r.left, r.width)),
+    y: Math.max(0, Math.min(src.clientY - r.top,  r.height))
+  };
+}
+
+cropWrap.addEventListener('pointerdown', e => {
+  if (e.target.classList.contains('pe-crop-handle')) return;
+  peCropDragging = true;
+  peCropStart    = peGetCropPos(e);
+  cropSel.style.display = 'block';
+  cropWrap.setPointerCapture(e.pointerId);
+});
+cropWrap.addEventListener('pointermove', e => {
+  if (!peCropDragging || !peCropStart) return;
+  const cur = peGetCropPos(e);
+  const x = Math.min(peCropStart.x, cur.x);
+  const y = Math.min(peCropStart.y, cur.y);
+  const w = Math.abs(cur.x - peCropStart.x);
+  const h = Math.abs(cur.y - peCropStart.y);
+  cropSel.style.left   = x + 'px';
+  cropSel.style.top    = y + 'px';
+  cropSel.style.width  = w + 'px';
+  cropSel.style.height = h + 'px';
+  peCropRect = { x, y, w, h };
+});
+cropWrap.addEventListener('pointerup', () => { peCropDragging = false; });
+
+window.peCropConfirm = function() {
+  if (peCropRect.w < 10 || peCropRect.h < 10) {
+    alert('請先拖拉選取裁剪範圍'); return;
+  }
+  const dispRect = cropImg.getBoundingClientRect();
+  // scale display coords → actual image pixel coords
+  const natW  = cropImg.naturalWidth;
+  const natH  = cropImg.naturalHeight;
+  const sx    = natW / dispRect.width;
+  const sy    = natH / dispRect.height;
+  const px    = Math.round(peCropRect.x * sx);
+  const py    = Math.round(peCropRect.y * sy);
+  const pw    = Math.round(peCropRect.w * sx);
+  const ph    = Math.round(peCropRect.h * sy);
+
+  const tmp   = document.createElement('canvas');
+  tmp.width   = pw; tmp.height = ph;
+  const tctx  = tmp.getContext('2d');
+  const full  = document.getElementById('pe-capture-canvas');
+  // draw cropped region
+  tctx.drawImage(full, px, py, pw, ph, 0, 0, pw, ph);
+
+  const cropped = new Image();
+  cropped.onload = () => { peLoadImg(cropped); };
+  cropped.src = tmp.toDataURL('image/png');
+  document.getElementById('pe-crop-modal').classList.remove('open');
+};
+
+window.peCropSkip = function() {
+  // use full photo without cropping
+  const img = new Image();
+  img.onload = () => { peLoadImg(img); };
+  img.src = peCropDataURL;
+  document.getElementById('pe-crop-modal').classList.remove('open');
+};
+
+window.peCropCancel = function() {
+  document.getElementById('pe-crop-modal').classList.remove('open');
+  peCropDataURL = null;
+};
+
+// ── DRAGGABLE LABEL OVERLAY ───────────────────────
+(function() {
+  const overlay  = document.getElementById('pe-label-overlay');
+  const handle   = document.getElementById('pe-label-drag-handle');
+  let dragging   = false;
+  let dragStartX = 0, dragStartY = 0;
+  let overlayStartX = 0, overlayStartY = 0;
+
+  handle.addEventListener('pointerdown', e => {
+    e.preventDefault();
+    dragging      = true;
+    dragStartX    = e.clientX;
+    dragStartY    = e.clientY;
+    overlayStartX = parseFloat(overlay.style.left) || 0;
+    overlayStartY = parseFloat(overlay.style.top)  || 0;
+    handle.setPointerCapture(e.pointerId);
+    handle.style.cursor = 'grabbing';
+  });
+
+  handle.addEventListener('pointermove', e => {
+    if (!dragging) return;
+    const dx   = e.clientX - dragStartX;
+    const dy   = e.clientY - dragStartY;
+    const area = document.getElementById('pe-canvas-area').getBoundingClientRect();
+    const ow   = overlay.offsetWidth;
+    const oh   = overlay.offsetHeight;
+    const M    = 4;
+    // Clamp within canvas-area
+    const newX = Math.max(M, Math.min(overlayStartX + dx, area.width  - ow - M));
+    const newY = Math.max(M, Math.min(overlayStartY + dy, area.height - oh - M));
+    overlay.style.left = newX + 'px';
+    overlay.style.top  = newY + 'px';
+  });
+
+  handle.addEventListener('pointerup', () => {
+    dragging = false;
+    handle.style.cursor = 'grab';
+  });
+})();
 
 window.peOpenFile = function() { document.getElementById('pe-file-input').click(); };
 window.peLoadFile = function(e) {
