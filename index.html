@@ -415,199 +415,80 @@
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
   .ai-key-row label { font-size: 0.78rem; color: var(--muted); white-space: nowrap; }
-/* ════════════════════════════════════
-     PHOTO EDITOR SECTION
-  ════════════════════════════════════ */
-  #photoEditorSection {
-    max-width: 1200px;
-    margin: 0 auto 24px auto;
-  }
+
+  /* ════════════════════════ PHOTO EDITOR ════════════════════════ */
+  #photoEditorSection { max-width:1200px; margin:0 auto 24px auto; }
   .pe-panel {
-    background: var(--surface);
-    border-radius: var(--radius);
-    overflow: visible;
-    background-image: linear-gradient(var(--surface), var(--surface)),
-                      linear-gradient(135deg, #7a3535, #b8860b, #7a3535);
-    background-origin: border-box;
-    background-clip: padding-box, border-box;
-    border: 2px solid transparent;
-    box-shadow: 0 2px 12px rgba(90,30,30,0.18);
-    margin-bottom: 14px;
+    background:var(--surface); border-radius:var(--radius); overflow:visible;
+    background-image:linear-gradient(var(--surface),var(--surface)),linear-gradient(135deg,#7a3535,#b8860b,#7a3535);
+    background-origin:border-box; background-clip:padding-box,border-box;
+    border:2px solid transparent; box-shadow:0 2px 12px rgba(90,30,30,0.18); margin-bottom:14px;
   }
   .pe-panel-header {
-    background: var(--surface2);
-    padding: 10px 14px;
-    border-bottom: 1px solid var(--border);
-    display: flex; align-items: center;
-    justify-content: space-between; gap: 8px;
-    cursor: pointer; user-select: none;
+    background:var(--surface2); padding:10px 14px; border-bottom:1px solid var(--border);
+    display:flex; align-items:center; justify-content:space-between; gap:8px;
+    cursor:pointer; user-select:none;
   }
-  .pe-panel-header .pe-title {
-    font-weight: 700; font-size: 0.85rem;
-    letter-spacing: 0.05em; text-transform: uppercase;
-    color: var(--muted); display: flex; align-items: center; gap: 7px;
-  }
-  .pe-panel-header .pe-title .dot {
-    width: 8px; height: 8px; border-radius: 50%;
-    background: #5affda; box-shadow: 0 0 8px #5affda;
-  }
-  .pe-panel-body { padding: 12px; }
-  .pe-toolbar {
-    background: #20202a; border-bottom: 1px solid var(--border);
-    display: flex; flex-wrap: wrap; align-items: center;
-    gap: 2px; padding: 4px 6px;
-  }
-  .pe-tool-group {
-    display: flex; align-items: center; gap: 2px; padding: 0 4px;
-    border-right: 1.5px solid var(--border);
-  }
-  .pe-tool-group:last-child { border-right: none; }
-  .pe-btn {
-    min-width: 40px; height: 40px;
-    background: transparent; border: 1.5px solid transparent;
-    border-radius: 6px; color: var(--text); cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    flex-direction: column; gap: 2px; font-size: 16px;
-    transition: background .15s, border-color .15s; flex-shrink: 0;
-    font-family: 'Noto Sans TC', sans-serif;
-  }
-  .pe-btn span.lbl { font-size: 7px; color: var(--muted); letter-spacing: .04em; line-height: 1; }
-  .pe-btn:hover  { background: var(--surface2); border-color: var(--border); }
-  .pe-btn.active { background: rgba(90,255,218,.12); border-color: #5affda; color: #5affda; }
-  .pe-btn.active span.lbl { color: #5affda; }
-  .pe-btn:disabled { opacity: .3; cursor: not-allowed; }
-  .pe-btn.cam-hi { background: rgba(245,197,66,.15); border-color: var(--accent); }
-  .pe-size-btn {
-    min-width: 40px; height: 40px; padding: 0 4px;
-    background: transparent; border: 1.5px solid transparent;
-    border-radius: 6px; cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    flex-direction: column; gap: 3px;
-    transition: background .15s, border-color .15s; flex-shrink: 0;
-  }
-  .pe-size-btn:hover  { background: var(--surface2); border-color: var(--border); }
-  .pe-size-btn.active { background: rgba(245,197,66,.12); border-color: var(--accent); }
-  .pe-size-dot { background: var(--text); border-radius: 50%; flex-shrink: 0; }
-  .pe-size-btn.active .pe-size-dot { background: var(--accent); }
-  .pe-size-btn span.lbl { font-size: 7px; color: var(--muted); letter-spacing: .04em; line-height: 1; font-family: 'Noto Sans TC',sans-serif; }
-  .pe-size-btn.active span.lbl { color: var(--accent); }
-  .pe-color-btn {
-    min-width: 40px; height: 40px;
-    border-radius: 6px; border: 1.5px solid var(--border);
-    background: transparent; cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    flex-direction: column; gap: 3px; flex-shrink: 0;
-    transition: border-color .15s; position: relative;
-  }
-  .pe-color-btn:hover { border-color: #5affda; }
-  .pe-swatch { width: 20px; height: 20px; border-radius: 4px; border: 1.5px solid rgba(255,255,255,.2); pointer-events: none; }
-  .pe-color-btn span.lbl { font-size: 7px; color: var(--muted); letter-spacing: .04em; line-height: 1; font-family: 'Noto Sans TC',sans-serif; }
-  .pe-color-popup {
-    display: none; position: absolute; top: calc(100% + 6px); left: 0;
-    background: var(--surface); border: 1.5px solid var(--border);
-    border-radius: 10px; padding: 10px; z-index: 400;
-    box-shadow: 0 12px 40px rgba(0,0,0,.6);
-    flex-direction: column; gap: 8px; min-width: 186px;
-  }
-  .pe-color-popup.open { display: flex; }
-  .pe-pal-grid { display: grid; grid-template-columns: repeat(6,1fr); gap: 6px; }
-  .pe-pal-sw {
-    width: 100%; aspect-ratio: 1; border-radius: 5px; border: 2px solid transparent;
-    cursor: pointer; transition: transform .1s, border-color .1s;
-  }
-  .pe-pal-sw:hover    { transform: scale(1.15); }
-  .pe-pal-sw.selected { border-color: #fff; transform: scale(1.06); }
-  .pe-pal-divider { height: 1px; background: var(--border); }
-  .pe-pal-custom {
-    width: 100%; padding: 6px 10px; background: var(--surface2);
-    border: 1.5px solid var(--border); border-radius: 6px; color: var(--text);
-    font-size: 0.82rem; cursor: pointer; text-align: center;
-    font-family: 'Noto Sans TC', sans-serif; transition: border-color .15s;
-  }
-  .pe-pal-custom:hover { border-color: #5affda; color: #5affda; }
-  #pe-canvas-area {
-    position: relative; overflow: hidden;
-    background: #111116; display: flex;
-    align-items: center; justify-content: center;
-    min-height: 200px; border-radius: 6px;
-  }
-  #pe-canvas-area::before {
-    content: ''; position: absolute; inset: 0;
-    background-image:
-      linear-gradient(45deg,  #1e1e26 25%, transparent 25%),
-      linear-gradient(-45deg, #1e1e26 25%, transparent 25%),
-      linear-gradient(45deg,  transparent 75%, #1e1e26 75%),
-      linear-gradient(-45deg, transparent 75%, #1e1e26 75%);
-    background-size: 20px 20px;
-    background-position: 0 0, 0 10px, 10px -10px, -10px 0px; opacity: .35;
-  }
-  #pe-canvas {
-    display: none; position: relative; z-index: 1;
-    cursor: crosshair; touch-action: none;
-    max-width: 100%; max-height: 60vh;
-    box-shadow: 0 4px 20px rgba(0,0,0,.5);
-  }
-  #pe-empty {
-    position: absolute; z-index: 2;
-    display: flex; flex-direction: column;
-    align-items: center; gap: 12px;
-    text-align: center; padding: 32px; color: var(--muted);
-  }
-  #pe-empty .ico { font-size: 48px; opacity: .3; }
-  #pe-empty p { font-size: 0.85rem; line-height: 1.6; }
-  .pe-seq-badge {
-    position: absolute; z-index: 10;
-    background: var(--accent); color: #111;
-    font-family: 'Space Mono', monospace; font-weight: 700; font-size: 11px;
-    border-radius: 10px; padding: 1px 6px;
-    pointer-events: none; transform: translate(-50%, -100%);
-    box-shadow: 0 2px 6px rgba(0,0,0,.4);
-  }
-  #pe-label-overlay {
-    display: none; position: absolute; z-index: 50;
-    flex-direction: column; align-items: stretch;
-    user-select: none;
-  }
-  #pe-label-overlay.open { display: flex; }
-  #pe-label-input {
-    font-family: 'Space Mono', monospace; font-weight: 700;
-    background: rgba(0,0,0,.75); color: #fff;
-    border: 1.5px solid #5affda; border-bottom: none;
-    border-radius: 5px 5px 0 0; padding: 2px 5px; outline: none;
-    min-width: 50px; max-width: 30vw; line-height: 1.2; display: block;
-    font-size: 11px;
-  }
-  #pe-label-confirm {
-    height: 20px; width: 100%;
-    background: #5affda; border: none; border-radius: 0 0 5px 5px;
-    color: #111; font-size: 10px; font-weight: 700; cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'Noto Sans TC', sans-serif; transition: filter .15s;
-  }
-  #pe-label-confirm:hover { filter: brightness(1.15); }
-
-
-  /* ── Float label active ── */
-  #pe-float-active {
-    position: absolute; left: 0; top: 0;
-    z-index: 40; display: none;
-    align-items: center; gap: 4px;
-    touch-action: none; will-change: transform;
-    pointer-events: auto; user-select: none;
-  }
-
-  /* ── 獨立固定按鈕（四角迴避） ── */
-  #pe-pin-btn {
-    display: none; position: absolute; z-index: 45;
-    height: 34px; padding: 0 14px;
-    background: var(--accent); border: none; border-radius: 8px;
-    color: #111; font-size: 13px; font-weight: 700; cursor: pointer;
-    white-space: nowrap; font-family: 'Noto Sans TC', sans-serif;
-    box-shadow: 0 3px 10px rgba(0,0,0,.5);
-    transition: filter .15s, transform .15s; pointer-events: auto;
-  }
-  #pe-pin-btn.active { display: block; }
-  #pe-pin-btn:hover  { filter: brightness(1.15); transform: scale(1.05); }
+  .pe-panel-header .pe-title { font-weight:700; font-size:0.85rem; letter-spacing:0.05em; text-transform:uppercase; color:var(--muted); display:flex; align-items:center; gap:7px; }
+  .pe-panel-header .pe-title .dot { width:8px; height:8px; border-radius:50%; background:#5affda; box-shadow:0 0 8px #5affda; }
+  .pe-panel-body { padding:12px; }
+  .pe-toolbar { background:#20202a; border-bottom:1px solid var(--border); display:flex; flex-wrap:wrap; align-items:center; gap:2px; padding:4px 6px; }
+  .pe-tool-group { display:flex; align-items:center; gap:2px; padding:0 4px; border-right:1.5px solid var(--border); }
+  .pe-tool-group:last-child { border-right:none; }
+  .pe-btn { min-width:40px; height:40px; background:transparent; border:1.5px solid transparent; border-radius:6px; color:var(--text); cursor:pointer; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:2px; font-size:16px; transition:background .15s,border-color .15s; flex-shrink:0; font-family:'Noto Sans TC',sans-serif; }
+  .pe-btn span.lbl { font-size:7px; color:var(--muted); letter-spacing:.04em; line-height:1; }
+  .pe-btn:hover  { background:var(--surface2); border-color:var(--border); }
+  .pe-btn.active { background:rgba(90,255,218,.12); border-color:#5affda; color:#5affda; }
+  .pe-btn.active span.lbl { color:#5affda; }
+  .pe-btn:disabled { opacity:.3; cursor:not-allowed; }
+  .pe-btn.cam-hi { background:rgba(245,197,66,.15); border-color:var(--accent); }
+  .pe-size-btn { min-width:40px; height:40px; padding:0 4px; background:transparent; border:1.5px solid transparent; border-radius:6px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:3px; transition:background .15s,border-color .15s; flex-shrink:0; }
+  .pe-size-btn:hover  { background:var(--surface2); border-color:var(--border); }
+  .pe-size-btn.active { background:rgba(245,197,66,.12); border-color:var(--accent); }
+  .pe-size-dot { background:var(--text); border-radius:50%; flex-shrink:0; }
+  .pe-size-btn.active .pe-size-dot { background:var(--accent); }
+  .pe-size-btn span.lbl { font-size:7px; color:var(--muted); letter-spacing:.04em; line-height:1; font-family:'Noto Sans TC',sans-serif; }
+  .pe-size-btn.active span.lbl { color:var(--accent); }
+  .pe-color-btn { min-width:40px; height:40px; border-radius:6px; border:1.5px solid var(--border); background:transparent; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:3px; flex-shrink:0; transition:border-color .15s; position:relative; }
+  .pe-color-btn:hover { border-color:#5affda; }
+  .pe-swatch { width:20px; height:20px; border-radius:4px; border:1.5px solid rgba(255,255,255,.2); pointer-events:none; }
+  .pe-color-btn span.lbl { font-size:7px; color:var(--muted); letter-spacing:.04em; line-height:1; font-family:'Noto Sans TC',sans-serif; }
+  .pe-color-popup { display:none; position:absolute; top:calc(100% + 6px); left:0; background:var(--surface); border:1.5px solid var(--border); border-radius:10px; padding:10px; z-index:400; box-shadow:0 12px 40px rgba(0,0,0,.6); flex-direction:column; gap:8px; min-width:186px; }
+  .pe-color-popup.open { display:flex; }
+  .pe-pal-grid { display:grid; grid-template-columns:repeat(6,1fr); gap:6px; }
+  .pe-pal-sw { width:100%; aspect-ratio:1; border-radius:5px; border:2px solid transparent; cursor:pointer; transition:transform .1s,border-color .1s; }
+  .pe-pal-sw:hover    { transform:scale(1.15); }
+  .pe-pal-sw.selected { border-color:#fff; transform:scale(1.06); }
+  .pe-pal-divider { height:1px; background:var(--border); }
+  .pe-pal-custom { width:100%; padding:6px 10px; background:var(--surface2); border:1.5px solid var(--border); border-radius:6px; color:var(--text); font-size:0.82rem; cursor:pointer; text-align:center; font-family:'Noto Sans TC',sans-serif; transition:border-color .15s; }
+  .pe-pal-custom:hover { border-color:#5affda; color:#5affda; }
+  #pe-canvas-area { position:relative; overflow:hidden; background:#111116; display:flex; align-items:center; justify-content:center; min-height:200px; border-radius:6px; }
+  #pe-canvas-area::before { content:''; position:absolute; inset:0; background-image:linear-gradient(45deg,#1e1e26 25%,transparent 25%),linear-gradient(-45deg,#1e1e26 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#1e1e26 75%),linear-gradient(-45deg,transparent 75%,#1e1e26 75%); background-size:20px 20px; background-position:0 0,0 10px,10px -10px,-10px 0px; opacity:.35; }
+  #pe-canvas { display:none; position:relative; z-index:1; cursor:crosshair; touch-action:none; max-width:100%; max-height:60vh; box-shadow:0 4px 20px rgba(0,0,0,.5); }
+  #pe-empty { position:absolute; z-index:2; display:flex; flex-direction:column; align-items:center; gap:12px; text-align:center; padding:32px; color:var(--muted); }
+  #pe-empty .ico { font-size:48px; opacity:.3; }
+  #pe-empty p { font-size:0.85rem; line-height:1.6; }
+  .pe-seq-badge { position:absolute; z-index:10; background:var(--accent); color:#111; font-family:'Space Mono',monospace; font-weight:700; font-size:11px; border-radius:10px; padding:1px 6px; pointer-events:none; transform:translate(-50%,-100%); box-shadow:0 2px 6px rgba(0,0,0,.4); }
+  #pe-label-overlay { display:none; position:absolute; z-index:50; flex-direction:column; align-items:stretch; }
+  #pe-label-overlay.open { display:flex; }
+  #pe-label-input { font-family:'Space Mono',monospace; font-weight:700; background:rgba(0,0,0,.75); color:#fff; border:2px solid #5affda; border-bottom:none; border-radius:6px 6px 0 0; padding:5px 8px; outline:none; min-width:100px; max-width:72vw; line-height:1.3; display:block; }
+  #pe-label-confirm { height:34px; width:100%; background:#5affda; border:none; border-radius:0 0 6px 6px; color:#111; font-size:13px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; font-family:'Noto Sans TC',sans-serif; transition:filter .15s; }
+  #pe-label-confirm:hover { filter:brightness(1.15); }
+  #pe-camera-modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,.9); z-index:2000; flex-direction:column; align-items:center; justify-content:center; gap:14px; padding:20px; }
+  #pe-camera-modal.open { display:flex; }
+  #pe-camera-modal h3 { font-size:1rem; font-weight:700; color:var(--accent); }
+  #pe-video { width:100%; max-width:480px; aspect-ratio:4/3; border-radius:10px; background:#000; border:1.5px solid var(--border); object-fit:cover; display:block; }
+  #pe-camera-msg { font-size:0.82rem; color:var(--muted); text-align:center; }
+  .pe-modal-actions { display:flex; gap:10px; align-items:center; }
+  .pe-modal-btn { padding:10px 20px; border-radius:8px; border:1.5px solid; font-family:'Noto Sans TC',sans-serif; font-size:0.85rem; cursor:pointer; transition:all .2s; }
+  .pe-modal-btn.snap { background:var(--accent); border-color:var(--accent); color:#111; font-weight:700; font-size:20px; width:58px; height:58px; border-radius:50%; padding:0; display:flex; align-items:center; justify-content:center; }
+  .pe-modal-btn.cancel { background:transparent; border-color:var(--border); color:var(--text); }
+  .pe-modal-btn.cancel:hover { border-color:var(--accent2); color:var(--accent2); }
+  #pe-capture-canvas { display:none; }
+  #pe-item-list .item-row { background:rgba(90,255,218,.04); border-left:2px solid #5affda; padding-left:10px; }
+  #pe-item-list .pe-seq-num { font-family:'Space Mono',monospace; font-size:0.78rem; color:#5affda; font-weight:700; white-space:nowrap; min-width:28px; }
+  .pe-flash { position:fixed; inset:0; z-index:3000; background:#fff; pointer-events:none; animation:peFlash .3s ease-out forwards; }
+  @keyframes peFlash { 0%{opacity:.9} 100%{opacity:0} }
 
 </style>
 <!-- Firebase SDK -->
@@ -690,16 +571,14 @@
 <div class="header">
   <div style="display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap">
     <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/7QCEUGhvdG9zaG9wIDMuMAA4QklNBAQAAAAAAGgcAigAYkZCTUQwYTAwMGFhNjAxMDAwMDA4MDIwMDAwYTYwMjAwMDAzODAzMDAwMGRmMDMwMDAwMjYwNTAwMDBjMDA2MDAwMGRhMDYwMDAwNDkwNzAwMDBhMzA3MDAwMDBhMDkwMDAwAP/bAIQABQYGCwgLCwsLCw0LCwsNDg4NDQ4ODw0ODg4NDxAQEBEREBAQEA8TEhMPEBETFBQTERMWFhYTFhUVFhkWGRYWEgEFBQUKBwoICQkICwgKCAsKCgkJCgoMCQoJCgkMDQsKCwsKCw0MCwsICwsMDAwNDQwMDQoLCg0MDQ0MExQTExOc/8IAEQgAPAA8AwEiAAIRAQMRAf/EAHEAAAICAwEAAAAAAAAAAAAAAAQFAwcAAQYCEAABAgQDBgMIAgMAAAAAAAABAhEAAxIhBDFBEBMiUWGRMnGhBSBCUoGxwfBy4RQ00REBAAEDAwMEAgMAAAAAAAAAAREAITFBUWEQcYGRobHwIMHR4fH/2gAMAwEAAgADAAAAAblzNazkHlf9YqNYt6v6oiLpsGJOHyCep4fSZpzPa+DnBNbZoKx+vAPI3le9tWw5ECx1v03LRs0XhXdE8UpYCGuu5qZc6jKXvRocGUM2er5kFKnWf//aAAgBAQABBQLYnGK3s1ZdGLQT7qo3wREuSgGTPrVltmLCBOxalmVicUIk4hJT7QxCJacKAdvtidvJmClprxZeRIVuT7Qr3kmSmWNmLkJ305W7jCYhTrQJpx+FVvZfhiYFROxIUpCguAGgYoRid5Mmodoxy2QVplx/kyZqsRucOZOKRNiYDvkhhGPgrVXJmF8aeKVNUkTZqkqkqqRH/9oACAEDAAE/AYxckIEsj4kjvAwylJUsDhTme3rcbEJqLRPQVSkqqJpLNoB2B+8JWUkKGYL8w46RNmmYXUXLAcrCMCkmYOEq8g8Kl1EXYahn/LN5xjpVCgyKR5WJ/eVtmCTTKUvk5N1JNmT8JBcVc2hOKJQpTuUsKi5V3qf1jEKK5MtaruWBqUolnd6iW+ltdn//2gAIAQIAAT8BMSpinkpqJ3qErN78A478lEot5xhJpIZRfRJIYqZwTmbWz1vbZOWQwT4llh01J+g7lhEuSE0W8CaEk5tb70iJCaQZRvT4edByfqLjsYCWicoVyhqCSf4lKhfzU1tW6QpDkKrIFuEZFv37Qkjeqv4kJp8wVVjzun9Gwm805msJHklIYX0cnvEyWROQmpTKBLBfC4ytTlblEvUcv3QbP//aAAgBAQAGPwLYx8BNI6QEpsS57f20JTUKyHp195XRR9C8LWchSP3vG/bnzyfxdj2hqQzC/mHe+nuFSiwEKMqUVJVqbekf6zg8j0hKrjd8MxJzD8/rAS/ErKz99IrCn3mVmNmftTtRI+ECtfkIPCodXijjsoeCzj/kSyl+MmUuu+fh7RSqm4CRkxAuMydc3a0W2lWqkX7wGsNSNA0BlqUXLuNISlSfjBcWyeJjS1GpikgHVDH1hNqbC3Lpssqn6PBNWVuvm3KPFVGVPaAzGk88+ggqSFOSKCBpox069Xe0B82v57G1VbvCirD7wPZVxytFxS/yhh3zhi9XLxd3jhkBwQ6w9r5t/cUpJClLDFyPEPweUB79diP5fiGctUdeZb8xIyu5Nh87frRLLB+HT5jFiz1O3J8vSCoKUDvCnM5AdoSTqkH02f/aAAgBAQEBPyHpMISQguLDPKJfikowEYGAc7odppsgK4ZcVP4NGFap9X9KUGUbG1l9zPahcgohXYSMlgNhvg8FM3aOJui96s7NrSTicPUeApVwBSUAUXBM6r3SfSipncjwjd2olCNJiOCjgDOIlpxQhiGYOhSEpAt3A1h9U3gIZjgUDS/VLhiOuA9vco0SISUiJ+/7RTtUEK5Znu8nirA5eEa8Ywk4w1G4UHNRswr9Fy0Ih0LzNgsTsaBBsdTwmAX2dHxTgTmgEsjh1yxaoQrKxC++P3eYoxULUUtj3f1S7l0INhktheUzNGAxel7LWx0ReEZs1c8WqIPbYmEINyd54q8hlgIE/frRSXye61JUkBixeMN2fHNT61G1AGwg/ROhbVmLL+/RHGUPy9prQoMoNhoSzQYXKCwz5Pux2KYJMJ0PYPehwIrgkNyNrqlqORQMWGQCVDnvCAUgJwl389Pu7qdliRKBGQYkFFRO7MJLKWLW4b0BcqCoVIUlvEYhM0YIscATZ8LOeaT25AUJQicE1HLNJkyXdD0//9oADAMBAQIBAwEAABCzeXT1OXa1c5z1crT/2gAIAQMBAT8QoM4u/G76X71mxjMQRheOEb9FAaoetvuxXwNNuTfRnVmrZ+QPIJErg0AWMGKcQBMiQkgWMF8tikl2EaIaWuo0OaLAq8IRqTpHQia12IhFDmhDLrS0kgAA5vWrMKQhuwg8wAEsLOn/2gAIAQIBAT8QUCmhVj0ml8IB/wAtfz1oKy2y1XB0FjEhSSIpNQGDEokzX9uRPqOiBBbgRlci8GIsU3JBlS++IJxrN+1Psguf3U6JYkknDcrByu/4C4qADj//2gAIAQEBAT8QpYqYpBAeSDOOUK2pqKE2fGC9AhuYQTy3qGJv+GD2p9GX3EoJ4JZ/oBbUzJZceCt2d1ryf7Duk0+t7CK80XW2agumNTnopBS0ASq1ev1Uw4aCwFJn1df6XiomQCD8hAjQxFysWWjVYByKeJUXLAvEbuomNd5hYYeck8RDpil2OJqqjK76LvrYbIDDmh/G5nGQbSEaNTbnAMDSg9TgDSAFpp863LS/zPJC4/SZzq5hXGx6BsczImKL5MWpfPhV6YQQTIQExsOVzitbpjEN2gL7nlNb68AWRnU48ekEFqJ30osLzhMXU48ua+an3oDXFbqkhiEKQDNvBhbxdHR344CnC8TUbqroqis/+B8IXVoeKnu0g/DT/WY2lBQOa2JzY7USFiKjqKyAYFiV46PH6ij2Q1RjkwRU0Qd0RTD/AHFZARTExzuASviNgEQJ+gyp8XuMhOgFC7pGNrot3en/2Q==" alt="史塔兔" style="width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid var(--accent);box-shadow:0 0 16px rgba(245,197,66,0.4)">
-    <h1>史塔兔 GOGO STAR 2 <span style="font-size:0.45em;color:var(--muted);font-weight:400;vertical-align:middle;letter-spacing:0.05em">Ver 3.04</span></h1>
+    <h1>史塔兔 GOGO STAR 2 <span style="font-size:0.45em;color:var(--muted);font-weight:400;vertical-align:middle;letter-spacing:0.05em">Ver 3.05</span></h1>
   </div>
   <p id="dailyQuote" style="color:#39ff14;text-shadow:0 0 8px #39ff14;">輕輕鬆鬆算訂單 老婆辛苦了</p>
         <button class="lottery-open-btn" onclick="openLottery()">🎰 幸運抽獎</button>
 </div>
 
 
-<!-- ════════════════════════════════════
-     PHOTO EDITOR SECTION
-════════════════════════════════════ -->
+<!-- ════════════════════════ PHOTO EDITOR ════════════════════════ -->
 <div id="photoEditorSection">
   <div class="pe-panel">
     <div class="pe-panel-header" onclick="peTogglePanel()">
@@ -707,7 +586,6 @@
       <span id="pe-toggle-icon" style="color:var(--muted);font-size:0.8rem">▼</span>
     </div>
     <div id="pe-panel-body">
-      <!-- Row 1 -->
       <div class="pe-toolbar">
         <div class="pe-tool-group">
           <button class="pe-btn cam-hi" onclick="peOpenCamera()">📷<span class="lbl">拍照</span></button>
@@ -740,7 +618,6 @@
           <button class="pe-btn" id="pe-btn-redo" onclick="peRedo()" disabled>↪️<span class="lbl">前進</span></button>
         </div>
       </div>
-      <!-- Row 2 -->
       <div class="pe-toolbar">
         <div class="pe-tool-group">
           <button class="pe-btn" id="pe-tool-label" onclick="peSetTool('label')">🔢<span class="lbl">標籤</span></button>
@@ -764,26 +641,20 @@
           </div>
         </div>
       </div>
-      <!-- Canvas -->
       <div id="pe-canvas-area">
-        <div id="pe-empty">
-          <div class="ico">📷</div>
-          <p>點擊「拍照」或「讀檔」載入照片<br>然後用標籤工具標記單價×數量</p>
-        </div>
+        <div id="pe-empty"><div class="ico">📷</div><p>點擊「拍照」或「讀檔」載入照片<br>然後用標籤工具標記單價×數量</p></div>
         <canvas id="pe-canvas"></canvas>
         <div id="pe-label-overlay">
-          <input id="pe-label-input" type="text" placeholder="單價×數量"
-                 autocomplete="off" autocorrect="off" spellcheck="false"
-                 oninput="peAutoResize(this)">
-          <button id="pe-label-confirm" onclick="peConfirmLabel()">✓ 確認</button>
+          <input id="pe-label-input" type="text" placeholder="單價×數量 例:350×2" autocomplete="off" autocorrect="off" spellcheck="false" oninput="peAutoResize(this)">
+          <button id="pe-label-confirm" onclick="peConfirmLabel()">✓ 確認加入</button>
         </div>
-        <!-- 浮動標籤（固定存在，顯示/隱藏切換） -->
-        <div id="pe-float-active">
-          <span id="pe-float-badge" style="background:#f5c542;color:#111;font-family:'Courier New',monospace;font-weight:700;font-size:11px;border-radius:10px;padding:1px 6px;white-space:nowrap;pointer-events:none;box-shadow:0 2px 6px rgba(0,0,0,.4)"></span>
-          <span id="pe-float-plate" style="background:#f5c542;color:#111;font-family:'Courier New',monospace;font-weight:700;border-radius:5px;padding:3px 6px;white-space:nowrap;pointer-events:none;box-shadow:0 2px 6px rgba(0,0,0,.4)"></span>
+        <!-- 浮動層：DOM div，不碰 canvas，拖移流暢 -->
+        <div id="pe-float-label" style="display:none;position:absolute;z-index:40;align-items:center;gap:3px;touch-action:none;cursor:grab;user-select:none;will-change:transform;left:0;top:0;pointer-events:auto;">
+          <span id="pe-float-badge" style="background:#f5c542;color:#111;font-family:'Courier New',monospace;font-weight:700;font-size:11px;border-radius:10px;padding:1px 6px;white-space:nowrap;pointer-events:none;box-shadow:0 2px 6px rgba(0,0,0,.5);"></span>
+          <span id="pe-float-text"  style="background:#f5c542;color:#111;font-family:'Courier New',monospace;font-weight:700;border-radius:5px;padding:2px 6px;white-space:nowrap;pointer-events:none;box-shadow:0 2px 6px rgba(0,0,0,.5);"></span>
         </div>
-        <!-- 固定按鈕，四角迴避 -->
-        <button id="pe-pin-btn" onclick="pePinLabel()">📌 固定</button>
+        <!-- 固定按鈕：四角迴避 -->
+        <button id="pe-pin-btn" onclick="pePinLabel()" style="display:none;position:absolute;z-index:45;height:32px;padding:0 14px;background:var(--accent);border:none;border-radius:8px;color:#111;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:'Noto Sans TC',sans-serif;box-shadow:0 3px 10px rgba(0,0,0,.5);transition:transform .15s;">📌 固定</button>
       </div>
     </div>
   </div>
@@ -802,43 +673,44 @@
   </div>
 </div>
 
-<!-- Camera modal -->
+<!-- Camera modal (3.01 原版) -->
 <div id="pe-camera-modal">
-  <div id="pe-camera-inner">
-    <video id="pe-video" autoplay playsinline muted></video>
-    <div id="pe-cam-side">
-      <h3>📷 相機預覽</h3>
-      <p id="pe-camera-msg">對準目標後按下快門</p>
-      <div class="pe-modal-actions">
-        <button class="pe-modal-btn cancel" onclick="peCloseCamera()">✕ 取消</button>
-        <button class="pe-modal-btn snap" onclick="peCapturePhoto()">◉</button>
-        <button class="pe-modal-btn cancel" onclick="peSwitchCamera()">🔄 翻轉</button>
-      </div>
-    </div>
+  <h3>📷 相機預覽</h3>
+  <video id="pe-video" autoplay playsinline muted></video>
+  <canvas id="pe-capture-canvas"></canvas>
+  <p id="pe-camera-msg">對準目標後按下快門</p>
+  <div class="pe-modal-actions">
+    <button class="pe-modal-btn cancel" onclick="peCloseCamera()">✕ 取消</button>
+    <button class="pe-modal-btn snap" onclick="peCapturePhoto()">◉</button>
+    <button class="pe-modal-btn cancel" onclick="peSwitchCamera()">🔄 翻轉</button>
   </div>
 </div>
+
 <!-- Crop Modal -->
-<div id="pe-crop-modal">
-  <h3>✂️ 裁剪照片</h3>
-  <p>拖動邊框或角落調整範圍</p>
-  <div id="pe-crop-wrap">
-    <img id="pe-crop-img" src="" alt="">
-    <canvas id="pe-crop-mask"></canvas>
-    <div id="pe-crop-sel">
-      <div class="pch" data-h="tl"></div><div class="pch" data-h="tc"></div>
-      <div class="pch" data-h="tr"></div><div class="pch" data-h="ml"></div>
-      <div class="pch" data-h="mr"></div><div class="pch" data-h="bl"></div>
-      <div class="pch" data-h="bc"></div><div class="pch" data-h="br"></div>
+<div id="pe-crop-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:2100;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px;">
+  <h3 style="font-size:1rem;font-weight:700;color:var(--accent);flex-shrink:0">✂️ 裁剪照片</h3>
+  <p style="font-size:0.8rem;color:var(--muted);flex-shrink:0;text-align:center">拖動邊框或角落調整範圍</p>
+  <div id="pe-crop-wrap" style="position:relative;flex-shrink:1;overflow:hidden;touch-action:none;cursor:default;">
+    <img id="pe-crop-img" src="" alt="" style="display:block;max-width:100%;max-height:calc(100dvh - 190px);pointer-events:none;user-select:none;">
+    <canvas id="pe-crop-mask" style="position:absolute;top:0;left:0;pointer-events:none;"></canvas>
+    <div id="pe-crop-sel" style="position:absolute;border:2px solid var(--accent);box-sizing:border-box;pointer-events:none;">
+      <div class="pch" data-h="tl" style="position:absolute;width:28px;height:28px;background:var(--accent);border-radius:4px;transform:translate(-50%,-50%);touch-action:none;pointer-events:all;z-index:10;top:0;left:0;"></div>
+      <div class="pch" data-h="tc" style="position:absolute;width:28px;height:28px;background:var(--accent);border-radius:4px;transform:translate(-50%,-50%);touch-action:none;pointer-events:all;z-index:10;top:0;left:50%;"></div>
+      <div class="pch" data-h="tr" style="position:absolute;width:28px;height:28px;background:var(--accent);border-radius:4px;transform:translate(-50%,-50%);touch-action:none;pointer-events:all;z-index:10;top:0;left:100%;"></div>
+      <div class="pch" data-h="ml" style="position:absolute;width:28px;height:28px;background:var(--accent);border-radius:4px;transform:translate(-50%,-50%);touch-action:none;pointer-events:all;z-index:10;top:50%;left:0;"></div>
+      <div class="pch" data-h="mr" style="position:absolute;width:28px;height:28px;background:var(--accent);border-radius:4px;transform:translate(-50%,-50%);touch-action:none;pointer-events:all;z-index:10;top:50%;left:100%;"></div>
+      <div class="pch" data-h="bl" style="position:absolute;width:28px;height:28px;background:var(--accent);border-radius:4px;transform:translate(-50%,-50%);touch-action:none;pointer-events:all;z-index:10;top:100%;left:0;"></div>
+      <div class="pch" data-h="bc" style="position:absolute;width:28px;height:28px;background:var(--accent);border-radius:4px;transform:translate(-50%,-50%);touch-action:none;pointer-events:all;z-index:10;top:100%;left:50%;"></div>
+      <div class="pch" data-h="br" style="position:absolute;width:28px;height:28px;background:var(--accent);border-radius:4px;transform:translate(-50%,-50%);touch-action:none;pointer-events:all;z-index:10;top:100%;left:100%;"></div>
     </div>
   </div>
-  <div id="pe-crop-actions">
-    <button class="pe-crop-btn confirm" onclick="peCropConfirm()">✓ 確認裁剪</button>
-    <button class="pe-crop-btn skip"    onclick="peCropSkip()">→ 不裁剪直接使用</button>
-    <button class="pe-crop-btn cancel"  onclick="peCropCancel()">✕ 取消</button>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;flex-shrink:0;">
+    <button onclick="peCropConfirm()" style="padding:10px 20px;border-radius:8px;border:1.5px solid var(--accent);background:var(--accent);color:#111;font-weight:700;font-size:0.85rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif;">✓ 確認裁剪</button>
+    <button onclick="peCropSkip()"    style="padding:10px 20px;border-radius:8px;border:1.5px solid var(--border);background:transparent;color:var(--text);font-size:0.85rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif;">→ 不裁剪直接使用</button>
+    <button onclick="peCropCancel()"  style="padding:10px 20px;border-radius:8px;border:1.5px solid var(--border);background:transparent;color:var(--muted);font-size:0.85rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif;">✕ 取消</button>
   </div>
 </div>
 <input type="file" id="pe-file-input" accept="image/*" style="display:none" onchange="peLoadFile(event)">
-<canvas id="pe-capture-canvas" style="display:none"></canvas>
 
 <div class="layout">
 
@@ -4263,80 +4135,242 @@ document.addEventListener('keydown', e => {
 // Enter key in add-row
 
 
-// ════════════════════════════════════
-//  PHOTO EDITOR
-// ════════════════════════════════════
+// ════════════════════════ PHOTO EDITOR ════════════════════════
 (function() {
 'use strict';
 
-const PE_PAL = ['#000000','#ffffff','#888888','#cccccc','#4a4a4a','#2b2b2b',
+const PE_PAL=['#000000','#ffffff','#888888','#cccccc','#4a4a4a','#2b2b2b',
   '#e8000d','#ff6b35','#ffcc00','#00c851','#007bff','#00bcd4',
   '#e91e63','#9c27b0','#8bc34a','#ff5722','#795548','#607d8b'];
 
-const peCanvas = document.getElementById('pe-canvas');
-const peCtx    = peCanvas.getContext('2d');
-const peFloatEl = document.getElementById('pe-float-active');
-const pinBtn    = document.getElementById('pe-pin-btn');
+const peCanvas=document.getElementById('pe-canvas');
+const peCtx=peCanvas.getContext('2d');
 
-let peImageLoaded=false, peTool='pencil', peBrushClr='#e8000d', peBrushSz=20;
-let peIsDrawing=false, peLastX=0, peLastY=0;
-let peLabelClr='#ffffff', peFontPx=50, pePending=null;
-let peSeqBadges=[], peItems=[];
-let peUndoStack=[], peRedoStack=[];
-const PE_MAX_HIST=30;
-let peCamStream=null, peFacingMode='environment';
+let peImageLoaded=false,peTool='pencil',peBrushClr='#e8000d',peBrushSz=20;
+let peIsDrawing=false,peLastX=0,peLastY=0;
+let peLabelClr='#ffffff',peFontPx=50,pePending=null;
+let peSeqBadges=[],peItems=[];
+let peUndoStack=[],peRedoStack=[];
+const PE_MAX=30;
+let peCamStream=null,peFacingMode='environment';
 
-// ── Float label (snapshot+GPU) ────────────────────────────
-let peFloatItem=null, peFloatDragging=false, peFloatSnap=null;
+// ── Palette ───────────────────────────────────────────────
+function peBuildPal(gid,ctx){
+  const g=document.getElementById(gid);if(!g)return;
+  PE_PAL.forEach(hex=>{
+    const el=document.createElement('div');
+    el.className='pe-pal-sw';el.style.background=hex;
+    el.addEventListener('pointerdown',e=>{e.stopPropagation();pePickColor(ctx,hex);});
+    g.appendChild(el);
+  });
+}
+peBuildPal('pe-pal-pencil','pencil');
+peBuildPal('pe-pal-label','label');
+
+window.peTogglePanel=function(){
+  const b=document.getElementById('pe-panel-body'),i=document.getElementById('pe-toggle-icon');
+  const h=b.style.display==='none';b.style.display=h?'':'none';i.textContent=h?'▼':'▶';
+};
+
+// ── History ───────────────────────────────────────────────
+function peSaveHist(){
+  peUndoStack.push(peCanvas.toDataURL());
+  if(peUndoStack.length>PE_MAX)peUndoStack.shift();
+  peRedoStack=[];peUpdHistBtns();
+}
+function peUpdHistBtns(){
+  document.getElementById('pe-btn-undo').disabled=!peUndoStack.length;
+  document.getElementById('pe-btn-redo').disabled=!peRedoStack.length;
+}
+function peRestoreURL(url){
+  return new Promise(res=>{
+    const img=new Image();
+    img.onload=()=>{peCtx.clearRect(0,0,peCanvas.width,peCanvas.height);peCtx.drawImage(img,0,0);res();};
+    img.src=url;
+  });
+}
+window.peUndo=async function(){
+  if(!peUndoStack.length)return;
+  peRedoStack.push(peCanvas.toDataURL());
+  await peRestoreURL(peUndoStack.pop());peUpdHistBtns();
+};
+window.peRedo=async function(){
+  if(!peRedoStack.length)return;
+  peUndoStack.push(peCanvas.toDataURL());
+  await peRestoreURL(peRedoStack.pop());peUpdHistBtns();
+};
+
+// ── Tools ─────────────────────────────────────────────────
+window.peSetTool=function(name){
+  peTool=name;peCancelLabel();
+  document.querySelectorAll('.pe-btn[id^="pe-tool-"]').forEach(b=>b.classList.remove('active'));
+  const b=document.getElementById('pe-tool-'+name);if(b)b.classList.add('active');
+  peCanvas.style.cursor=name==='label'?'cell':'crosshair';
+};
+window.peBrushSize=function(px,idx){
+  peBrushSz=px;
+  document.querySelectorAll('.pe-size-btn[id^="pe-sz-"]').forEach(b=>b.classList.remove('active'));
+  const b=document.getElementById('pe-sz-'+idx);if(b)b.classList.add('active');
+};
+window.peFontSize=function(px,idx){
+  peFontPx=px;
+  document.querySelectorAll('.pe-size-btn[id^="pe-fs-"]').forEach(b=>b.classList.remove('active'));
+  const b=document.getElementById('pe-fs-'+idx);if(b)b.classList.add('active');
+};
+window.peTogglePopup=function(id){
+  document.querySelectorAll('.pe-color-popup').forEach(p=>{if(p.id!==id)p.classList.remove('open');});
+  document.getElementById(id).classList.toggle('open');
+};
+function pePickColor(ctx,hex){
+  if(ctx==='pencil'){peBrushClr=hex;document.getElementById('pe-swatch-pencil').style.background=hex;peHiSw('pe-pal-pencil',hex);}
+  else{peLabelClr=hex;document.getElementById('pe-swatch-label').style.background=hex;peHiSw('pe-pal-label',hex);}
+  document.querySelectorAll('.pe-color-popup').forEach(p=>p.classList.remove('open'));
+}
+window.peApplyCustomColor=function(ctx,hex){
+  if(ctx==='pencil'){peBrushClr=hex;document.getElementById('pe-swatch-pencil').style.background=hex;}
+  else{peLabelClr=hex;document.getElementById('pe-swatch-label').style.background=hex;}
+};
+window.peOpenCustomColor=function(ctx){
+  const inp=document.getElementById('pe-color-'+ctx);
+  inp.value=ctx==='pencil'?peBrushClr:peLabelClr;inp.click();
+  document.querySelectorAll('.pe-color-popup').forEach(p=>p.classList.remove('open'));
+};
+function peHiSw(gid,hex){
+  document.getElementById(gid).querySelectorAll('.pe-pal-sw').forEach(s=>{
+    s.classList.toggle('selected',peNH(s.style.background)===hex.toLowerCase());
+  });
+}
+function peNH(css){
+  const m=css.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+  if(!m)return css.toLowerCase();
+  return '#'+[m[1],m[2],m[3]].map(n=>(+n).toString(16).padStart(2,'0')).join('');
+}
+document.addEventListener('pointerdown',e=>{
+  document.querySelectorAll('.pe-color-popup.open').forEach(p=>{
+    const bid=p.id==='pe-popup-pencil'?'pe-btn-color-pencil':'pe-btn-color-label';
+    const btn=document.getElementById(bid);
+    if(!p.contains(e.target)&&btn&&!btn.contains(e.target))p.classList.remove('open');
+  });
+});
+
+// ── Drawing ───────────────────────────────────────────────
+function peGetPos(e){
+  const r=peCanvas.getBoundingClientRect();
+  const sx=peCanvas.width/r.width,sy=peCanvas.height/r.height;
+  const s=e.touches?e.touches[0]:e;
+  return[(s.clientX-r.left)*sx,(s.clientY-r.top)*sy];
+}
+peCanvas.addEventListener('pointerdown',e=>{
+  if(!peImageLoaded)return;
+  if(peTool==='label'){
+    e.preventDefault();
+    // Block new input while float label waiting to be pinned
+    if(peFloatItem){
+      pePinBtn.style.transform='scale(1.25)';
+      setTimeout(()=>{pePinBtn.style.transform='';},250);
+      return;
+    }
+    peOpenLabelAt(e);return;
+  }
+  if(peTool==='pencil'){
+    e.preventDefault();peSaveHist();peIsDrawing=true;
+    [peLastX,peLastY]=peGetPos(e);
+    peCtx.beginPath();peCtx.arc(peLastX,peLastY,peBrushSz/2,0,Math.PI*2);
+    peCtx.fillStyle=peBrushClr;peCtx.fill();
+  }
+});
+peCanvas.addEventListener('pointermove',e=>{
+  if(!peIsDrawing||peTool!=='pencil')return;
+  e.preventDefault();
+  const[x,y]=peGetPos(e);
+  peCtx.beginPath();peCtx.moveTo(peLastX,peLastY);peCtx.lineTo(x,y);
+  peCtx.strokeStyle=peBrushClr;peCtx.lineWidth=peBrushSz;
+  peCtx.lineCap='round';peCtx.lineJoin='round';peCtx.stroke();
+  [peLastX,peLastY]=[x,y];
+});
+peCanvas.addEventListener('pointerup',()=>{peIsDrawing=false;});
+peCanvas.addEventListener('pointerout',()=>{peIsDrawing=false;});
+
+// ── Label ─────────────────────────────────────────────────
+function peParseLabel(raw){
+  const c=raw.trim();
+  const m=c.match(/^(\d+(?:\.\d+)?)\s*[\u00d7xX*]\s*(\d+(?:\.\d+)?)$/);
+  if(m)return{price:parseFloat(m[1]),qty:parseFloat(m[2])};
+  const s=c.match(/^(\d+(?:\.\d+)?)$/);
+  if(s)return{price:parseFloat(s[1]),qty:1};
+  return null;
+}
+function peOpenLabelAt(e){
+  const cr=peCanvas.getBoundingClientRect();
+  const ar=document.getElementById('pe-canvas-area').getBoundingClientRect();
+  const s=e.touches?e.touches[0]:e;
+  const sx=peCanvas.width/cr.width,sy=peCanvas.height/cr.height;
+  pePending={canvasX:(s.clientX-cr.left)*sx,canvasY:(s.clientY-cr.top)*sy};
+  const ov=document.getElementById('pe-label-overlay');
+  const inp=document.getElementById('pe-label-input');
+  inp.value='';inp.style.width='160px';
+  let x=s.clientX-ar.left,y=s.clientY-ar.top;
+  x=Math.max(8,Math.min(x,ar.width-190));y=Math.max(8,Math.min(y,ar.height-80));
+  ov.style.left=x+'px';ov.style.top=y+'px';
+  ov.classList.add('open');setTimeout(()=>inp.focus(),40);
+}
+// ── Float label system ────────────────────────────────────
+let peFloatItem=null, peFloatDragging=false, peFloatDragStart=null;
+const peFloatEl = document.getElementById('pe-float-label');
+const pePinBtn  = document.getElementById('pe-pin-btn');
 
 function peShowFloat(canvasX, canvasY, raw, seqIdx) {
   document.getElementById('pe-float-badge').textContent = (seqIdx+1)+'.';
-  document.getElementById('pe-float-plate').textContent = raw;
-  peFloatItem.canvasX = canvasX;
-  peFloatItem.canvasY = canvasY;
+  document.getElementById('pe-float-text').textContent  = raw;
   peFloatEl.style.display = 'flex';
-  peApplyFloatPos();
+  // Convert canvas coords → display (left/top relative to canvas-area)
+  const cr = peCanvas.getBoundingClientRect();
+  const ar = document.getElementById('pe-canvas-area').getBoundingClientRect();
+  const sx = peCanvas.width/cr.width, sy = peCanvas.height/cr.height;
+  const dispX = canvasX/sx + (cr.left-ar.left);
+  const dispY = canvasY/sy + (cr.top-ar.top);
+  peFloatEl.style.left = dispX + 'px';
+  peFloatEl.style.top  = dispY + 'px';
   peUpdatePinBtn();
 }
 
-function peApplyFloatPos() {
-  if (!peFloatItem) return;
-  const cr = peCanvas.getBoundingClientRect();
+function peUpdatePinBtn() {
   const ar = document.getElementById('pe-canvas-area').getBoundingClientRect();
-  const x  = peFloatItem.canvasX / (peCanvas.width/cr.width)  + cr.left - ar.left;
-  const y  = peFloatItem.canvasY / (peCanvas.height/cr.height) + cr.top  - ar.top;
-  peFloatEl.style.transform = `translate(${x}px,${y}px)`;
+  const fx = parseFloat(peFloatEl.style.left) || 0;
+  const fy = parseFloat(peFloatEl.style.top)  || 0;
+  const M=10, bw=pePinBtn.offsetWidth||80, bh=pePinBtn.offsetHeight||32;
+  pePinBtn.style.left = (fx > ar.width/2  ? M : ar.width-bw-M) + 'px';
+  pePinBtn.style.top  = (fy > ar.height/2 ? M : ar.height-bh-M) + 'px';
+  pePinBtn.style.display = 'block';
 }
 
+// Drag: pure left/top, zero canvas math
 peFloatEl.addEventListener('pointerdown', e => {
   e.preventDefault(); e.stopPropagation();
-  const cr = peCanvas.getBoundingClientRect();
-  const ar = document.getElementById('pe-canvas-area').getBoundingClientRect();
-  peFloatSnap = {
-    sx: peCanvas.width/cr.width, sy: peCanvas.height/cr.height,
-    startCX: peFloatItem.canvasX, startCY: peFloatItem.canvasY,
-    startPX: e.clientX, startPY: e.clientY,
-    offX: cr.left-ar.left, offY: cr.top-ar.top,
-    maxCX: peCanvas.width, maxCY: peCanvas.height,
-  };
   peFloatDragging = true;
+  const ar = document.getElementById('pe-canvas-area').getBoundingClientRect();
+  peFloatDragStart = {
+    px: e.clientX, py: e.clientY,
+    lx: parseFloat(peFloatEl.style.left)||0,
+    ly: parseFloat(peFloatEl.style.top)||0,
+    maxW: ar.width, maxH: ar.height,  // snapshot once
+  };
   peFloatEl.setPointerCapture(e.pointerId);
   peFloatEl.style.cursor = 'grabbing';
 });
-
 peFloatEl.addEventListener('pointermove', e => {
   if (!peFloatDragging) return;
-  const s  = peFloatSnap;
-  const cx = Math.max(0, Math.min(s.startCX + (e.clientX-s.startPX)/s.sx, s.maxCX-10));
-  const cy = Math.max(0, Math.min(s.startCY + (e.clientY-s.startPY)/s.sy, s.maxCY-10));
-  peFloatItem.canvasX = cx;
-  peFloatItem.canvasY = cy;
-  peFloatEl.style.transform = `translate(${cx/s.sx+s.offX}px,${cy/s.sy+s.offY}px)`;
+  const s = peFloatDragStart;
+  // Pure arithmetic only — zero DOM queries
+  const nx = Math.max(0, Math.min(s.lx + (e.clientX-s.px), s.maxW-4));
+  const ny = Math.max(0, Math.min(s.ly + (e.clientY-s.py), s.maxH-4));
+  peFloatEl.style.left = nx + 'px';
+  peFloatEl.style.top  = ny + 'px';
+  // Throttle pin btn
   if (!peFloatEl._pt) {
-    peFloatEl._pt = setTimeout(() => { peFloatEl._pt=null; peUpdatePinBtn(); }, 150);
+    peFloatEl._pt = setTimeout(() => { peFloatEl._pt=null; peUpdatePinBtn(); }, 120);
   }
 });
-
 peFloatEl.addEventListener('pointerup', () => {
   peFloatDragging = false;
   peFloatEl.style.cursor = 'grab';
@@ -4344,386 +4378,188 @@ peFloatEl.addEventListener('pointerup', () => {
   peUpdatePinBtn();
 });
 
-function peUpdatePinBtn() {
-  if (!peFloatItem) return;
-  const ar = document.getElementById('pe-canvas-area').getBoundingClientRect();
-  const cr = peCanvas.getBoundingClientRect();
-  if (!cr.width) return;
-  const sx=cr.width/peCanvas.width, sy=cr.height/peCanvas.height;
-  const fx=peFloatItem.canvasX*sx+(cr.left-ar.left);
-  const fy=peFloatItem.canvasY*sy+(cr.top-ar.top);
-  const M=10, bw=pinBtn.offsetWidth||80, bh=pinBtn.offsetHeight||34;
-  pinBtn.style.left = (fx>ar.width/2  ? M : ar.width-bw-M)+'px';
-  pinBtn.style.top  = (fy>ar.height/2 ? M : ar.height-bh-M)+'px';
-  pinBtn.classList.add('active');
-}
-
-window.addEventListener('orientationchange', () => {
-  setTimeout(() => {
-    if (peFloatItem && peFloatEl.style.display !== 'none') peApplyFloatPos();
-    peUpdatePinBtn();
-  }, 300);
-});
-
-// ── Palette ───────────────────────────────────────────────
-function peBuildPal(gid, ctx) {
-  const g = document.getElementById(gid); if (!g) return;
-  PE_PAL.forEach(hex => {
-    const el = document.createElement('div');
-    el.className = 'pe-pal-sw'; el.style.background = hex;
-    el.addEventListener('pointerdown', e => { e.stopPropagation(); pePickColor(ctx,hex); });
-    g.appendChild(el);
-  });
-}
-peBuildPal('pe-pal-pencil','pencil');
-peBuildPal('pe-pal-label','label');
-
-window.peTogglePanel = function() {
-  const b=document.getElementById('pe-panel-body'), i=document.getElementById('pe-toggle-icon');
-  const h=b.style.display==='none'; b.style.display=h?'':'none'; i.textContent=h?'▼':'▶';
-};
-
-// ── History ───────────────────────────────────────────────
-function peSaveHist() {
-  peUndoStack.push(peCanvas.toDataURL());
-  if (peUndoStack.length>PE_MAX_HIST) peUndoStack.shift();
-  peRedoStack=[]; peUpdHistBtns();
-}
-function peUpdHistBtns() {
-  document.getElementById('pe-btn-undo').disabled = !peUndoStack.length;
-  document.getElementById('pe-btn-redo').disabled = !peRedoStack.length;
-}
-function peRestoreURL(url) {
-  return new Promise(res => {
-    const img=new Image();
-    img.onload=()=>{ peCtx.clearRect(0,0,peCanvas.width,peCanvas.height); peCtx.drawImage(img,0,0); res(); };
-    img.src=url;
-  });
-}
-window.peUndo = async function() {
-  if (!peUndoStack.length) return;
-  peRedoStack.push(peCanvas.toDataURL());
-  await peRestoreURL(peUndoStack.pop()); peUpdHistBtns();
-};
-window.peRedo = async function() {
-  if (!peRedoStack.length) return;
-  peUndoStack.push(peCanvas.toDataURL());
-  await peRestoreURL(peRedoStack.pop()); peUpdHistBtns();
-};
-
-// ── Tools ────────────────────────────────────────────────
-window.peSetTool = function(name) {
-  peTool=name; peCancelLabel();
-  document.querySelectorAll('.pe-btn[id^="pe-tool-"]').forEach(b=>b.classList.remove('active'));
-  const b=document.getElementById('pe-tool-'+name); if(b) b.classList.add('active');
-  peCanvas.style.cursor = name==='label'?'cell':'crosshair';
-};
-window.peBrushSize = function(px,idx) {
-  peBrushSz=px;
-  document.querySelectorAll('.pe-size-btn[id^="pe-sz-"]').forEach(b=>b.classList.remove('active'));
-  const b=document.getElementById('pe-sz-'+idx); if(b) b.classList.add('active');
-};
-window.peFontSize = function(px,idx) {
-  peFontPx=px;
-  document.querySelectorAll('.pe-size-btn[id^="pe-fs-"]').forEach(b=>b.classList.remove('active'));
-  const b=document.getElementById('pe-fs-'+idx); if(b) b.classList.add('active');
-};
-window.peTogglePopup = function(id) {
-  document.querySelectorAll('.pe-color-popup').forEach(p=>{ if(p.id!==id) p.classList.remove('open'); });
-  document.getElementById(id).classList.toggle('open');
-};
-function pePickColor(ctx,hex) {
-  if(ctx==='pencil'){peBrushClr=hex;document.getElementById('pe-swatch-pencil').style.background=hex;peHiSw('pe-pal-pencil',hex);}
-  else{peLabelClr=hex;document.getElementById('pe-swatch-label').style.background=hex;peHiSw('pe-pal-label',hex);}
-  document.querySelectorAll('.pe-color-popup').forEach(p=>p.classList.remove('open'));
-}
-window.peApplyCustomColor = function(ctx,hex) {
-  if(ctx==='pencil'){peBrushClr=hex;document.getElementById('pe-swatch-pencil').style.background=hex;}
-  else{peLabelClr=hex;document.getElementById('pe-swatch-label').style.background=hex;}
-};
-window.peOpenCustomColor = function(ctx) {
-  const inp=document.getElementById('pe-color-'+ctx);
-  inp.value=ctx==='pencil'?peBrushClr:peLabelClr; inp.click();
-  document.querySelectorAll('.pe-color-popup').forEach(p=>p.classList.remove('open'));
-};
-function peHiSw(gid,hex) {
-  document.getElementById(gid).querySelectorAll('.pe-pal-sw').forEach(s=>{
-    s.classList.toggle('selected', peNH(s.style.background)===hex.toLowerCase());
-  });
-}
-function peNH(css) {
-  const m=css.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
-  if(!m) return css.toLowerCase();
-  return '#'+[m[1],m[2],m[3]].map(n=>(+n).toString(16).padStart(2,'0')).join('');
-}
-document.addEventListener('pointerdown', e=>{
-  document.querySelectorAll('.pe-color-popup.open').forEach(p=>{
-    const bid=p.id==='pe-popup-pencil'?'pe-btn-color-pencil':'pe-btn-color-label';
-    const btn=document.getElementById(bid);
-    if(!p.contains(e.target)&&btn&&!btn.contains(e.target)) p.classList.remove('open');
-  });
-});
-
-// ── Drawing ───────────────────────────────────────────────
-function peGetPos(e) {
-  const r=peCanvas.getBoundingClientRect();
-  const sx=peCanvas.width/r.width, sy=peCanvas.height/r.height;
-  const s=e.touches?e.touches[0]:e;
-  return [(s.clientX-r.left)*sx,(s.clientY-r.top)*sy];
-}
-peCanvas.addEventListener('pointerdown', e=>{
-  if (!peImageLoaded) return;
-  if (peTool==='label') {
-    e.preventDefault();
-    if (peFloatItem) {
-      pinBtn.style.transform='scale(1.25)';
-      setTimeout(()=>{pinBtn.style.transform='';},250);
-      return;
-    }
-    peOpenLabelAt(e); return;
-  }
-  if (peTool==='pencil') {
-    e.preventDefault(); peSaveHist(); peIsDrawing=true;
-    [peLastX,peLastY]=peGetPos(e);
-    peCtx.beginPath(); peCtx.arc(peLastX,peLastY,peBrushSz/2,0,Math.PI*2);
-    peCtx.fillStyle=peBrushClr; peCtx.fill();
-  }
-});
-peCanvas.addEventListener('pointermove', e=>{
-  if (!peIsDrawing||peTool!=='pencil') return;
-  e.preventDefault();
-  const [x,y]=peGetPos(e);
-  peCtx.beginPath(); peCtx.moveTo(peLastX,peLastY); peCtx.lineTo(x,y);
-  peCtx.strokeStyle=peBrushClr; peCtx.lineWidth=peBrushSz;
-  peCtx.lineCap='round'; peCtx.lineJoin='round'; peCtx.stroke();
-  [peLastX,peLastY]=[x,y];
-});
-peCanvas.addEventListener('pointerup',  ()=>{ peIsDrawing=false; });
-peCanvas.addEventListener('pointerout', ()=>{ peIsDrawing=false; });
-
-// ── Label ─────────────────────────────────────────────────
-function peParseLabel(raw) {
-  const c=raw.trim();
-  const m=c.match(/^(\d+(?:\.\d+)?)\s*[\u00d7xX*]\s*(\d+(?:\.\d+)?)$/);
-  if(m) return {price:parseFloat(m[1]),qty:parseFloat(m[2])};
-  const s=c.match(/^(\d+(?:\.\d+)?)$/);
-  if(s) return {price:parseFloat(s[1]),qty:1};
-  return null;
-}
-
-function peOpenLabelAt(e) {
-  const cr=peCanvas.getBoundingClientRect();
-  const ar=document.getElementById('pe-canvas-area').getBoundingClientRect();
-  const s=e.touches?e.touches[0]:e;
-  const sx=peCanvas.width/cr.width, sy=peCanvas.height/cr.height;
-  pePending = {
-    canvasX:(s.clientX-cr.left)*sx,
-    canvasY:(s.clientY-cr.top)*sy
-  };
-  const inp=document.getElementById('pe-label-input');
-  const ov=document.getElementById('pe-label-overlay');
-  inp.value=''; inp.style.fontSize='14px'; inp.style.width='140px';
-  let x=s.clientX-ar.left, y=s.clientY-ar.top;
-  x=Math.max(4,Math.min(x,ar.width-150));
-  y=Math.max(4,Math.min(y,ar.height-60));
-  ov.style.left=x+'px'; ov.style.top=y+'px';
-  ov.classList.add('open');
-  setTimeout(()=>inp.focus(),40);
-}
-
-window.peConfirmLabel = function() {
+window.peConfirmLabel=function(){
   const inp=document.getElementById('pe-label-input');
   const raw=inp.value.trim();
   const parsed=raw?peParseLabel(raw):null;
-  if (!parsed||!pePending) { peCancelLabel(); return; }
-  const seqIdx=peItems.length;
-  peFloatItem = { price:parsed.price, qty:parsed.qty, seqIdx, raw,
-    canvasX:pePending.canvasX, canvasY:pePending.canvasY };
+  if(parsed&&pePending){
+    const{canvasX,canvasY}=pePending;
+    const seqIdx=peItems.length;
+    // Don't write to canvas yet — show float layer
+    peFloatItem={price:parsed.price,qty:parsed.qty,seqIdx,raw,canvasX,canvasY};
+  }
   peCancelLabel();
-  peShowFloat(peFloatItem.canvasX, peFloatItem.canvasY, raw, seqIdx);
+  if(peFloatItem) peShowFloat(peFloatItem.canvasX,peFloatItem.canvasY,peFloatItem.raw,peFloatItem.seqIdx);
 };
 
-// ── Pin ───────────────────────────────────────────────────
-window.pePinLabel = function() {
-  if (!peFloatItem) return;
-  const {price,qty,seqIdx,raw} = peFloatItem;
-  const canvasX=peFloatItem.canvasX, canvasY=peFloatItem.canvasY;
+// Pin: write float label to canvas and commit
+window.pePinLabel=function(){
+  if(!peFloatItem)return;
+  const{price,qty,seqIdx,raw}=peFloatItem;
   const FONT='Courier New';
+
+  // Read display position at this exact moment → convert to canvas coords
+  const dispX = parseFloat(peFloatEl.style.left) || 0;
+  const dispY = parseFloat(peFloatEl.style.top)  || 0;
+  const cr = peCanvas.getBoundingClientRect();
+  const ar = document.getElementById('pe-canvas-area').getBoundingClientRect();
+  const sx = peCanvas.width/cr.width, sy = peCanvas.height/cr.height;
+  const offX = cr.left - ar.left, offY = cr.top - ar.top;
+  const canvasX = (dispX - offX) * sx;
+  const canvasY = (dispY - offY) * sy;
 
   peSaveHist();
   peItems.push({price,qty,seqIdx,canvasX,canvasY,raw});
 
-  // Draw text plate
-  peCtx.font=`700 ${peFontPx}px "${FONT}",monospace`;
+  // Draw text plate on canvas
+  peCtx.font='700 '+peFontPx+'px "'+FONT+'",monospace';
   peCtx.textBaseline='top';
   const tp=Math.round(peFontPx*0.12);
   const tw=peCtx.measureText(raw).width+tp*2, th=peFontPx+tp*2;
   peCtx.fillStyle='#f5c542'; peCtx.shadowColor='rgba(0,0,0,0.5)'; peCtx.shadowBlur=6;
   peCtx.beginPath(); peCtx.roundRect(canvasX,canvasY,tw,th,Math.round(peFontPx*0.15)); peCtx.fill();
   peCtx.shadowBlur=0; peCtx.fillStyle='#111'; peCtx.shadowColor='rgba(0,0,0,0)';
-  peCtx.fillText(raw,canvasX+tp,canvasY+tp);
+  peCtx.fillText(raw, canvasX+tp, canvasY+tp);
 
-  // Draw badge left of text
+  // Draw badge on canvas
   const bfpx=Math.max(24,Math.round(peFontPx*0.35)), bpad=Math.round(bfpx*0.3);
   const btxt=(seqIdx+1)+'.';
-  peCtx.font=`700 ${bfpx}px "${FONT}",monospace`;
+  peCtx.font='700 '+bfpx+'px "'+FONT+'",monospace';
   const bw=peCtx.measureText(btxt).width+bpad*2, bh=bfpx+bpad*2;
   const bx=canvasX-bw-Math.round(peFontPx*0.08), by=canvasY;
-  peCtx.fillStyle='#f5c542';
-  peCtx.beginPath(); peCtx.roundRect(bx,by,bw,bh,bh*0.3); peCtx.fill();
+  peCtx.fillStyle='#f5c542'; peCtx.beginPath(); peCtx.roundRect(bx,by,bw,bh,bh*0.3); peCtx.fill();
   peCtx.fillStyle='#111'; peCtx.fillText(btxt,bx+bpad,by+bpad);
   peCtx.textBaseline='top';
 
-  // Hide float
+  // DOM badge (invisible, for undo position tracking only)
+  const badge=document.createElement('div');
+  badge.className='pe-seq-badge'; badge.textContent=btxt;
+  badge.id='pe-badge-'+seqIdx;
+  badge.style.left=(canvasX/sx+(cr.left-ar.left))+'px';
+  badge.style.top=(canvasY/sy+(cr.top-ar.top))+'px';
+  badge.style.opacity='0'; badge.style.pointerEvents='none';
+  document.getElementById('pe-canvas-area').appendChild(badge);
+  peSeqBadges.push(badge);
+
+  // Hide float layer
   peFloatEl.style.display='none';
-  pinBtn.classList.remove('active');
+  pePinBtn.style.display='none';
   peFloatItem=null;
   peShowItemsPanel();
   peAddPhotoItemRow(seqIdx,price,qty);
 };
-
-function peCancelLabel() {
+function peCancelLabel(){
   document.getElementById('pe-label-overlay').classList.remove('open');
-  document.getElementById('pe-label-input').value='';
-  pePending=null;
+  document.getElementById('pe-label-input').value='';pePending=null;
 }
-
 document.getElementById('pe-label-input').addEventListener('keydown',e=>{
   if(e.key==='Enter'){e.preventDefault();window.peConfirmLabel();}
   if(e.key==='Escape'){e.preventDefault();peCancelLabel();}
 });
 document.getElementById('pe-canvas-area').addEventListener('pointerdown',e=>{
   const ov=document.getElementById('pe-label-overlay');
-  if(ov.classList.contains('open')&&!ov.contains(e.target)) peCancelLabel();
+  if(ov.classList.contains('open')&&!ov.contains(e.target))peCancelLabel();
 },true);
-
-window.peAutoResize = function(inp) {
+window.peAutoResize=function(inp){
   const tmp=document.createElement('span');
-  tmp.style.cssText='font:700 14px "Courier New",monospace;position:absolute;visibility:hidden;white-space:pre';
+  tmp.style.cssText='font:700 '+inp.style.fontSize+' "Courier New",monospace;position:absolute;visibility:hidden;white-space:pre';
   tmp.textContent=inp.value||inp.placeholder;
   document.body.appendChild(tmp);
-  inp.style.width=Math.max(100,Math.min(tmp.offsetWidth+20,window.innerWidth*0.6))+'px';
+  inp.style.width=Math.max(120,Math.min(tmp.offsetWidth+28,window.innerWidth*0.7))+'px';
   document.body.removeChild(tmp);
 };
 
-// ── Items panel ───────────────────────────────────────────
-function peShowItemsPanel() { document.getElementById('pe-items-panel').style.display=''; }
+// ── Items ─────────────────────────────────────────────────
+function peShowItemsPanel(){document.getElementById('pe-items-panel').style.display='';}
 
-function peAddPhotoItemRow(seqIdx,price,qty) {
+function peAddPhotoItemRow(seqIdx,price,qty){
   const list=document.getElementById('pe-item-list');
-  itemRowCount++;
-  const id=itemRowCount;
+  itemRowCount++;const id=itemRowCount;
   const div=document.createElement('div');
-  div.className='item-row'; div.id='itemRow_'+id; div.dataset.peSeq=seqIdx;
-
+  div.className='item-row';div.id='itemRow_'+id;div.dataset.peSeq=seqIdx;
   const wrap=document.createElement('div');
   wrap.style.cssText='display:flex;gap:6px;align-items:center;flex-wrap:wrap;width:100%';
-
-  const mk=(tag,css,txt)=>{const el=document.createElement(tag);if(css)el.style.cssText=css;if(txt)el.textContent=txt;return el;};
-
-  const seqEl=mk('span','font-family:monospace;font-size:0.78rem;color:#5affda;font-weight:700;white-space:nowrap;min-width:28px',(seqIdx+1)+'.');
-  wrap.appendChild(seqEl);
+  const mk=(tag,css,txt)=>{const el=document.createElement(tag);if(css)el.style.cssText=css;if(txt!==undefined)el.textContent=txt;return el;};
+  wrap.appendChild(mk('span','font-family:monospace;font-size:0.78rem;color:#5affda;font-weight:700;white-space:nowrap;min-width:28px',(seqIdx+1)+'.'));
   wrap.appendChild(mk('span','font-size:0.78rem;color:var(--muted);white-space:nowrap','品項'));
-
   const pfx=mk('input','width:80px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:0.82rem;padding:5px 8px;outline:none;font-family:inherit');
-  pfx.id='prefix_'+id; pfx.placeholder='編號/備注...';
-  pfx.setAttribute('oninput','updateItemName('+id+')');
+  pfx.id='prefix_'+id;pfx.placeholder='編號/備注...';pfx.setAttribute('oninput','updateItemName('+id+')');
   pfx.addEventListener('focus',()=>pfx.style.borderColor='var(--accent)');
-  pfx.addEventListener('blur', ()=>pfx.style.borderColor='var(--border)');
+  pfx.addEventListener('blur',()=>pfx.style.borderColor='var(--border)');
   wrap.appendChild(pfx);
-
-  const catWrap=mk('div'); catWrap.style.position='relative';
-  const catBtn=mk('button','padding:5px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:0.82rem;cursor:pointer;font-family:inherit;white-space:nowrap;display:flex;align-items:center;gap:5px');
-  catBtn.id='catBtn_'+id; catBtn.setAttribute('onclick','toggleCatDropdown('+id+')');
-  const catLbl=mk('span','','選擇品項 ▼'); catLbl.id='catLabel_'+id; catBtn.appendChild(catLbl);
-  catWrap.appendChild(catBtn);
-
-  const catDD=mk('div','display:none;position:absolute;top:100%;left:0;z-index:3000;width:220px;background:var(--surface);border:1px solid var(--accent);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.5);padding:8px;margin-top:4px');
-  catDD.id='catDropdown_'+id;
-  const catList=mk('div','max-height:220px;overflow-y:auto;margin-bottom:6px'); catList.id='catList_'+id;
-  catDD.appendChild(catList);
-  const catBR=mk('div','border-top:1px dashed var(--border);padding-top:6px;display:flex;gap:6px');
-  const addCB=mk('button','flex:1;padding:6px 8px;border-radius:6px;border:1px solid #4ade80;background:rgba(74,222,128,0.1);color:#4ade80;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:inherit','＋ 新增');
-  addCB.setAttribute('onclick','addCategoryFromRow('+id+')');
-  const delCB=mk('button','flex:1;padding:6px 8px;border-radius:6px;border:1px solid #fb7185;background:rgba(251,113,133,0.1);color:#fb7185;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:inherit','🗑 刪除');
-  delCB.setAttribute('onclick','showDeleteCategoryModal('+id+')');
-  catBR.appendChild(addCB); catBR.appendChild(delCB);
-  catDD.appendChild(catBR); catWrap.appendChild(catDD);
-  wrap.appendChild(catWrap);
-
-  const nmPv=mk('span','font-size:0.82rem;color:var(--accent);font-weight:700;min-width:60px'); nmPv.id='itemNamePreview_'+id;
-  wrap.appendChild(nmPv);
-
-  const preBtn=mk('button','padding:5px 10px;border-radius:6px;border:1px solid #ccff00;background:transparent;color:#ccff00;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap','預購');
-  preBtn.id='preorderBtn_'+id; preBtn.setAttribute('onclick','togglePreorder('+id+')');
-  wrap.appendChild(preBtn);
-
+  const cw=mk('div');cw.style.position='relative';
+  const cb=mk('button','padding:5px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:0.82rem;cursor:pointer;font-family:inherit;white-space:nowrap;display:flex;align-items:center;gap:5px');
+  cb.id='catBtn_'+id;cb.setAttribute('onclick','toggleCatDropdown('+id+')');
+  const cl=mk('span','',　'選擇品項 ▼');cl.id='catLabel_'+id;cb.appendChild(cl);cw.appendChild(cb);
+  const cd=mk('div','display:none;position:absolute;top:100%;left:0;z-index:3000;width:220px;background:var(--surface);border:1px solid var(--accent);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.5);padding:8px;margin-top:4px');
+  cd.id='catDropdown_'+id;
+  const clist=mk('div','max-height:220px;overflow-y:auto;margin-bottom:6px');clist.id='catList_'+id;cd.appendChild(clist);
+  const cbr=mk('div','border-top:1px dashed var(--border);padding-top:6px;display:flex;gap:6px');
+  const ab=mk('button','flex:1;padding:6px 8px;border-radius:6px;border:1px solid #4ade80;background:rgba(74,222,128,0.1);color:#4ade80;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:inherit','＋ 新增');
+  ab.setAttribute('onclick','addCategoryFromRow('+id+')');
+  const db=mk('button','flex:1;padding:6px 8px;border-radius:6px;border:1px solid #fb7185;background:rgba(251,113,133,0.1);color:#fb7185;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:inherit','🗑 刪除');
+  db.setAttribute('onclick','showDeleteCategoryModal('+id+')');
+  cbr.appendChild(ab);cbr.appendChild(db);cd.appendChild(cbr);cw.appendChild(cd);wrap.appendChild(cw);
+  const np=mk('span','font-size:0.82rem;color:var(--accent);font-weight:700;min-width:60px');np.id='itemNamePreview_'+id;wrap.appendChild(np);
+  const pb=mk('button','padding:5px 10px;border-radius:6px;border:1px solid #ccff00;background:transparent;color:#ccff00;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap','預購');
+  pb.id='preorderBtn_'+id;pb.setAttribute('onclick','togglePreorder('+id+')');wrap.appendChild(pb);
   wrap.appendChild(mk('span','font-size:0.78rem;color:var(--muted)','單價'));
-  const priceEl=mk('input'); priceEl.id='price_'+id; priceEl.className='item-num-input';
-  priceEl.style.width='90px'; priceEl.type='text'; priceEl.inputMode='numeric'; priceEl.value=price;
-  wrap.appendChild(priceEl);
-
+  const pi=mk('input');pi.id='price_'+id;pi.className='item-num-input';pi.style.width='90px';pi.type='text';pi.inputMode='numeric';pi.value=price;wrap.appendChild(pi);
   wrap.appendChild(mk('span','font-size:0.78rem;color:var(--muted)','數量'));
-  const qtyEl=mk('input'); qtyEl.id='qty_'+id; qtyEl.className='item-num-input';
-  qtyEl.type='text'; qtyEl.inputMode='numeric'; qtyEl.value=qty;
-  wrap.appendChild(qtyEl);
-
-  const sub=mk('span','font-size:0.78rem;color:#5affda;font-family:monospace','= $'+(price*qty));
-  sub.id='subtotal_'+id; wrap.appendChild(sub);
-
+  const qi=mk('input');qi.id='qty_'+id;qi.className='item-num-input';qi.type='text';qi.inputMode='numeric';qi.value=qty;wrap.appendChild(qi);
+  const sub=mk('span','font-size:0.78rem;color:#5affda;font-family:monospace','= $'+(price*qty));sub.id='subtotal_'+id;wrap.appendChild(sub);
   const bk=mk('button','padding:4px 8px;border-radius:5px;border:1px solid #fb7185;background:transparent;color:#fb7185;font-size:0.78rem;cursor:pointer','↩ 跳回');
-  bk.setAttribute('onclick','peRemoveItemRow('+id+','+seqIdx+')');
-  wrap.appendChild(bk);
-  div.appendChild(wrap); list.appendChild(div);
+  bk.setAttribute('onclick','peRemoveItemRow('+id+','+seqIdx+')');wrap.appendChild(bk);
+  div.appendChild(wrap);list.appendChild(div);
   renderItemCategories(id,'');
-  const upd=()=>{
-    const q=parseFloat(qtyEl.value)||0,p=parseFloat(priceEl.value)||0;
-    sub.textContent=(q&&p)?'= $'+(q*p):'';
-  };
-  qtyEl.addEventListener('input',upd); priceEl.addEventListener('input',upd);
+  const upd=()=>{const q=parseFloat(qi.value)||0,p=parseFloat(pi.value)||0;sub.textContent=(q&&p)?'= $'+(q*p):'';};
+  qi.addEventListener('input',upd);pi.addEventListener('input',upd);
 }
 
-window.peRemoveItemRow = async function(rowId,seqIdx) {
-  if (peFloatItem&&peFloatItem.seqIdx===seqIdx) {
-    peFloatEl.style.display='none'; pinBtn.classList.remove('active'); peFloatItem=null;
-    const el=document.getElementById('itemRow_'+rowId); if(el) el.remove();
-    if (!peItems.length) document.getElementById('pe-items-panel').style.display='none';
+window.peRemoveItemRow=async function(rowId,seqIdx){
+  // If this item is floating (not yet pinned), just cancel float
+  if(peFloatItem&&peFloatItem.seqIdx===seqIdx){
+    peFloatEl.style.display='none';
+    pePinBtn.style.display='none';
+    peFloatItem=null;
+    const el=document.getElementById('itemRow_'+rowId);if(el)el.remove();
+    if(!peItems.length)document.getElementById('pe-items-panel').style.display='none';
     return;
   }
-  const el=document.getElementById('itemRow_'+rowId); if(el) el.remove();
-  const badge=document.getElementById('pe-badge-'+seqIdx); if(badge) badge.remove();
+  const el=document.getElementById('itemRow_'+rowId);if(el)el.remove();
+  const badge=document.getElementById('pe-badge-'+seqIdx);if(badge)badge.remove();
   peItems=peItems.filter(it=>it.seqIdx!==seqIdx);
-  if (peUndoStack.length>0) {
-    const snap=peUndoStack.pop(); peRedoStack=[];
+  if(peUndoStack.length>0){
+    const snap=peUndoStack.pop();peRedoStack=[];
     await peRestoreURL(snap);
     const F='Courier New';
     peItems.forEach(it=>{
-      peCtx.font=`700 ${peFontPx}px "${F}",monospace`; peCtx.textBaseline='top';
+      peCtx.font='700 '+peFontPx+'px "'+F+'",monospace';peCtx.textBaseline='top';
       const tp=Math.round(peFontPx*0.12);
-      const tw=peCtx.measureText(it.raw).width+tp*2, th=peFontPx+tp*2;
-      peCtx.fillStyle='#f5c542'; peCtx.shadowColor='rgba(0,0,0,0.5)'; peCtx.shadowBlur=6;
-      peCtx.beginPath(); peCtx.roundRect(it.canvasX,it.canvasY,tw,th,Math.round(peFontPx*0.15)); peCtx.fill();
-      peCtx.shadowBlur=0; peCtx.fillStyle='#111'; peCtx.shadowColor='rgba(0,0,0,0)';
+      const tw=peCtx.measureText(it.raw).width+tp*2,th=peFontPx+tp*2;
+      peCtx.fillStyle='#f5c542';peCtx.shadowColor='rgba(0,0,0,0.5)';peCtx.shadowBlur=6;
+      peCtx.beginPath();peCtx.roundRect(it.canvasX,it.canvasY,tw,th,Math.round(peFontPx*0.15));peCtx.fill();
+      peCtx.shadowBlur=0;peCtx.fillStyle='#111';peCtx.shadowColor='rgba(0,0,0,0)';
       peCtx.fillText(it.raw,it.canvasX+tp,it.canvasY+tp);
       const bfpx=Math.max(24,Math.round(peFontPx*0.35)),bpad=Math.round(bfpx*0.3);
       const btxt=(it.seqIdx+1)+'.';
-      peCtx.font=`700 ${bfpx}px "${F}",monospace`;
+      peCtx.font='700 '+bfpx+'px "'+F+'",monospace';
       const bw=peCtx.measureText(btxt).width+bpad*2,bh=bfpx+bpad*2;
       const bx=it.canvasX-bw-Math.round(peFontPx*0.08);
-      peCtx.fillStyle='#f5c542'; peCtx.beginPath(); peCtx.roundRect(bx,it.canvasY,bw,bh,bh*0.3); peCtx.fill();
-      peCtx.fillStyle='#111'; peCtx.fillText(btxt,bx+bpad,it.canvasY+bpad); peCtx.textBaseline='top';
+      peCtx.fillStyle='#f5c542';peCtx.beginPath();peCtx.roundRect(bx,it.canvasY,bw,bh,bh*0.3);peCtx.fill();
+      peCtx.fillStyle='#111';peCtx.fillText(btxt,bx+bpad,it.canvasY+bpad);peCtx.textBaseline='top';
     });
   }
   peUpdHistBtns();
   peItems.sort((a,b)=>a.seqIdx-b.seqIdx).forEach((it,ni)=>{
-    const b=document.getElementById('pe-badge-'+it.seqIdx); if(b) b.textContent=(ni+1)+'.';
+    const b=document.getElementById('pe-badge-'+it.seqIdx);if(b)b.textContent=(ni+1)+'.';
   });
-  if (!peItems.length) document.getElementById('pe-items-panel').style.display='none';
+  if(!peItems.length)document.getElementById('pe-items-panel').style.display='none';
 };
 
-window.peGenerateOrder = function() {
+window.peGenerateOrder=function(){
   const rows=document.querySelectorAll('#pe-item-list .item-row');
-  if (!rows.length) { alert('尚無標記品項'); return; }
+  if(!rows.length){alert('尚無標記品項');return;}
   let added=0;
   rows.forEach((row,ri)=>{
     const id=row.id.replace('itemRow_','');
@@ -4732,163 +4568,174 @@ window.peGenerateOrder = function() {
     const catN=cat==='選擇品項'?'':cat;
     const isP=document.getElementById('preorderBtn_'+id)?.getAttribute('data-on')==='1';
     let name=((isP?'預購':'')+pfx+catN).trim();
-    if (!name) name='編號'+(ri+1);
+    if(!name)name='編號'+(ri+1);
     const qty=parseFloat(document.getElementById('qty_'+id)?.value)||1;
     const price=parseFloat(document.getElementById('price_'+id)?.value)||0;
-    if (price<=0) return;
-    orders.push({id:nextId++,name,qty,price,source:'photo'}); added++;
+    if(price<=0)return;
+    orders.push({id:nextId++,name,qty,price,source:'photo'});added++;
   });
-  if (!added) { alert('請確認每行都有填品項名稱和金額'); return; }
-  if (peImageLoaded&&!window._peDLock) {
-    window._peDLock=true; setTimeout(()=>{window._peDLock=false;},2000);
-    const a=document.createElement('a'); a.download='order_photo_'+Date.now()+'.png';
-    a.href=peCanvas.toDataURL('image/png'); a.click();
+  if(!added){alert('請確認每行都有填品項名稱和金額');return;}
+  if(peImageLoaded&&!window._peDLock){
+    window._peDLock=true;setTimeout(()=>{window._peDLock=false;},2000);
+    const a=document.createElement('a');a.download='order_photo_'+Date.now()+'.png';
+    a.href=peCanvas.toDataURL('image/png');a.click();
   }
-  peResetAll(); renderTable();
+  peResetAll();renderTable();
   document.querySelector('.panel.full').scrollIntoView({behavior:'smooth'});
 };
 
-window.peResetItems = function() {
-  if (peItems.length&&!confirm('確定要清除所有標記品項？')) return;
+window.peResetItems=function(){
+  if(peItems.length&&!confirm('確定要清除所有標記品項？'))return;
   peResetAll();
 };
-
-function peResetAll() {
+function peResetAll(){
   document.getElementById('pe-canvas-area').querySelectorAll('.pe-seq-badge').forEach(b=>b.remove());
-  peSeqBadges=[]; peItems=[];
-  peFloatEl.style.display='none'; pinBtn.classList.remove('active'); peFloatItem=null;
+  peSeqBadges=[];peItems=[];
+  peFloatEl.style.display='none';
+  pePinBtn.style.display='none';
+  peFloatItem=null;
   document.getElementById('pe-item-list').innerHTML='';
   document.getElementById('pe-items-panel').style.display='none';
-  peImageLoaded=false; peCanvas.style.display='none';
+  peImageLoaded=false;peCanvas.style.display='none';
   document.getElementById('pe-empty').style.display='';
   peCtx.clearRect(0,0,peCanvas.width,peCanvas.height);
-  peUndoStack=[]; peRedoStack=[]; peUpdHistBtns();
+  peUndoStack=[];peRedoStack=[];peUpdHistBtns();
 }
 
-// ── Camera ────────────────────────────────────────────────
-window.peOpenCamera = async function() {
+// ── Camera (3.01 原版) ────────────────────────────────────
+window.peOpenCamera=async function(){
   document.getElementById('pe-camera-modal').classList.add('open');
   await peStartStream();
 };
-async function peStartStream() {
-  if (peCamStream) peStopStream();
-  try {
-    peCamStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:peFacingMode,width:{ideal:1920},height:{ideal:1080}},audio:false});
+async function peStartStream(){
+  if(peCamStream)peStopStream();
+  try{
+    peCamStream=await navigator.mediaDevices.getUserMedia({
+      video:{facingMode:peFacingMode,width:{ideal:1920},height:{ideal:1080}},audio:false});
     document.getElementById('pe-video').srcObject=peCamStream;
     document.getElementById('pe-camera-msg').textContent='對準目標後按下快門';
-  } catch(err){document.getElementById('pe-camera-msg').textContent='⚠️ 無法存取相機：'+err.message;}
+  }catch(err){
+    document.getElementById('pe-camera-msg').textContent='⚠️ 無法存取相機：'+err.message;
+  }
 }
-function peStopStream() { if(peCamStream){peCamStream.getTracks().forEach(t=>t.stop());peCamStream=null;} }
-window.peCloseCamera = function() {
+function peStopStream(){
+  if(peCamStream){peCamStream.getTracks().forEach(t=>t.stop());peCamStream=null;}
+}
+window.peCloseCamera=function(){
   peStopStream();
   document.getElementById('pe-camera-modal').classList.remove('open');
   document.getElementById('pe-video').srcObject=null;
 };
-window.peSwitchCamera = async function() {
-  peFacingMode=peFacingMode==='environment'?'user':'environment'; await peStartStream();
+window.peSwitchCamera=async function(){
+  peFacingMode=peFacingMode==='environment'?'user':'environment';
+  await peStartStream();
 };
-window.peCapturePhoto = function() {
-  const v=document.getElementById('pe-video'), cap=document.getElementById('pe-capture-canvas');
-  cap.width=v.videoWidth||1280; cap.height=v.videoHeight||720;
+window.peCapturePhoto=function(){
+  const v=document.getElementById('pe-video');
+  const cap=document.getElementById('pe-capture-canvas');
+  cap.width=v.videoWidth||1280;cap.height=v.videoHeight||720;
   cap.getContext('2d').drawImage(v,0,0,cap.width,cap.height);
-  const f=document.createElement('div'); f.className='pe-flash';
-  document.body.appendChild(f); setTimeout(()=>f.remove(),400);
+  const f=document.createElement('div');f.className='pe-flash';
+  document.body.appendChild(f);setTimeout(()=>f.remove(),400);
   window.peCloseCamera();
   peOpenCrop(cap.toDataURL('image/jpeg',0.95));
 };
 
 // ── Crop ──────────────────────────────────────────────────
-let peCropDataURL=null, peCR={x:0,y:0,w:0,h:0}, peCropActive=null, peCropPtrStart=null;
+let peCropDataURL=null,peCR={x:0,y:0,w:0,h:0};
+let peCropActive=null,peCropPtrStart=null;
 const CROP_MIN=30;
-const cropWrap=document.getElementById('pe-crop-wrap');
-const cropSel=document.getElementById('pe-crop-sel');
 const cropImg=document.getElementById('pe-crop-img');
 const cropMask=document.getElementById('pe-crop-mask');
+const cropSel=document.getElementById('pe-crop-sel');
 
-function peCropDrawMask() {
-  const iw=cropImg.offsetWidth, ih=cropImg.offsetHeight;
-  cropMask.width=iw; cropMask.height=ih;
-  const c=cropMask.getContext('2d'); c.clearRect(0,0,iw,ih);
+function peCropDrawMask(){
+  const iw=cropImg.offsetWidth,ih=cropImg.offsetHeight;
+  cropMask.width=iw;cropMask.height=ih;
+  const c=cropMask.getContext('2d');c.clearRect(0,0,iw,ih);
   c.fillStyle='rgba(0,0,0,0.55)';
-  c.fillRect(0,0,iw,peCR.y); c.fillRect(0,peCR.y+peCR.h,iw,ih-peCR.y-peCR.h);
-  c.fillRect(0,peCR.y,peCR.x,peCR.h); c.fillRect(peCR.x+peCR.w,peCR.y,iw-peCR.x-peCR.w,peCR.h);
+  c.fillRect(0,0,iw,peCR.y);
+  c.fillRect(0,peCR.y+peCR.h,iw,ih-peCR.y-peCR.h);
+  c.fillRect(0,peCR.y,peCR.x,peCR.h);
+  c.fillRect(peCR.x+peCR.w,peCR.y,iw-peCR.x-peCR.w,peCR.h);
 }
-function peCropApply() {
-  cropSel.style.cssText+=`;left:${peCR.x}px;top:${peCR.y}px;width:${peCR.w}px;height:${peCR.h}px`;
-  cropSel.style.left=peCR.x+'px'; cropSel.style.top=peCR.y+'px';
-  cropSel.style.width=peCR.w+'px'; cropSel.style.height=peCR.h+'px';
+function peCropApply(){
+  cropSel.style.left=peCR.x+'px';cropSel.style.top=peCR.y+'px';
+  cropSel.style.width=peCR.w+'px';cropSel.style.height=peCR.h+'px';
   peCropDrawMask();
 }
-function peOpenCrop(dataURL) {
+function peOpenCrop(dataURL){
   peCropDataURL=dataURL;
   cropImg.src=dataURL;
   cropImg.onload=()=>{
-    document.getElementById('pe-crop-modal').classList.add('open');
+    document.getElementById('pe-crop-modal').style.display='flex';
     requestAnimationFrame(()=>{
-      const iw=cropImg.offsetWidth, ih=cropImg.offsetHeight;
+      const iw=cropImg.offsetWidth,ih=cropImg.offsetHeight;
       cropMask.style.cssText='position:absolute;top:0;left:0;pointer-events:none';
-      const P=8; peCR={x:P,y:P,w:iw-P*2,h:ih-P*2}; peCropApply();
+      const P=8;peCR={x:P,y:P,w:iw-P*2,h:ih-P*2};peCropApply();
     });
   };
 }
 const HM={tl:['l','t'],tc:['t'],tr:['r','t'],ml:['l'],mr:['r'],bl:['l','b'],bc:['b'],br:['r','b']};
 cropSel.querySelectorAll('.pch').forEach(h=>{
   h.addEventListener('pointerdown',e=>{
-    e.stopPropagation(); e.preventDefault();
-    peCropActive=h.dataset.h; peCropPtrStart={cx:e.clientX,cy:e.clientY,rect:{...peCR}};
+    e.stopPropagation();e.preventDefault();
+    peCropActive=h.dataset.h;
+    peCropPtrStart={cx:e.clientX,cy:e.clientY,rect:{...peCR}};
     h.setPointerCapture(e.pointerId);
   });
 });
 document.addEventListener('pointermove',e=>{
-  if (!peCropActive||!peCropPtrStart) return;
-  const iw=cropImg.offsetWidth, ih=cropImg.offsetHeight;
-  const dx=e.clientX-peCropPtrStart.cx, dy=e.clientY-peCropPtrStart.cy;
-  const r0=peCropPtrStart.rect; let {x,y,w,h:hh}=r0;
+  if(!peCropActive||!peCropPtrStart)return;
+  const iw=cropImg.offsetWidth,ih=cropImg.offsetHeight;
+  const dx=e.clientX-peCropPtrStart.cx,dy=e.clientY-peCropPtrStart.cy;
+  const r0=peCropPtrStart.rect;let{x,y,w,h:hh}=r0;
   const edges=HM[peCropActive];
   if(edges.includes('l')){const nx=Math.max(0,Math.min(r0.x+dx,r0.x+r0.w-CROP_MIN));w=r0.w-(nx-r0.x);x=nx;}
   if(edges.includes('r')){w=Math.max(CROP_MIN,Math.min(r0.w+dx,iw-r0.x));}
   if(edges.includes('t')){const ny=Math.max(0,Math.min(r0.y+dy,r0.y+r0.h-CROP_MIN));hh=r0.h-(ny-r0.y);y=ny;}
   if(edges.includes('b')){hh=Math.max(CROP_MIN,Math.min(r0.h+dy,ih-r0.y));}
-  peCR={x,y,w,h:hh}; peCropApply();
+  peCR={x,y,w,h:hh};peCropApply();
 });
 document.addEventListener('pointerup',()=>{peCropActive=null;peCropPtrStart=null;});
 
-window.peCropConfirm = function() {
-  const sx=cropImg.naturalWidth/cropImg.offsetWidth, sy=cropImg.naturalHeight/cropImg.offsetHeight;
-  const px=Math.round(peCR.x*sx), py=Math.round(peCR.y*sy);
-  const pw=Math.max(1,Math.round(peCR.w*sx)), ph=Math.max(1,Math.round(peCR.h*sy));
-  const tmp=document.createElement('canvas'); tmp.width=pw; tmp.height=ph;
+window.peCropConfirm=function(){
+  const sx=cropImg.naturalWidth/cropImg.offsetWidth;
+  const sy=cropImg.naturalHeight/cropImg.offsetHeight;
+  const px=Math.round(peCR.x*sx),py=Math.round(peCR.y*sy);
+  const pw=Math.max(1,Math.round(peCR.w*sx)),ph=Math.max(1,Math.round(peCR.h*sy));
+  const tmp=document.createElement('canvas');tmp.width=pw;tmp.height=ph;
   tmp.getContext('2d').drawImage(document.getElementById('pe-capture-canvas'),px,py,pw,ph,0,0,pw,ph);
-  const out=new Image(); out.onload=()=>peLoadImg(out); out.src=tmp.toDataURL('image/png');
-  document.getElementById('pe-crop-modal').classList.remove('open');
+  const out=new Image();out.onload=()=>peLoadImg(out);out.src=tmp.toDataURL('image/png');
+  document.getElementById('pe-crop-modal').style.display='none';
 };
-window.peCropSkip = function() {
-  const img=new Image(); img.onload=()=>peLoadImg(img); img.src=peCropDataURL;
-  document.getElementById('pe-crop-modal').classList.remove('open');
+window.peCropSkip=function(){
+  const img=new Image();img.onload=()=>peLoadImg(img);img.src=peCropDataURL;
+  document.getElementById('pe-crop-modal').style.display='none';
 };
-window.peCropCancel = function() {
-  document.getElementById('pe-crop-modal').classList.remove('open'); peCropDataURL=null;
+window.peCropCancel=function(){
+  document.getElementById('pe-crop-modal').style.display='none';peCropDataURL=null;
 };
 
-// ── File load ─────────────────────────────────────────────
-window.peOpenFile = function() { document.getElementById('pe-file-input').click(); };
-window.peLoadFile = function(e) {
-  const file=e.target.files[0]; if(!file) return;
+// ── File ──────────────────────────────────────────────────
+window.peOpenFile=function(){document.getElementById('pe-file-input').click();};
+window.peLoadFile=function(e){
+  const file=e.target.files[0];if(!file)return;
   const r=new FileReader();
   r.onload=ev=>{const img=new Image();img.onload=()=>peLoadImg(img);img.src=ev.target.result;};
-  r.readAsDataURL(file); e.target.value='';
+  r.readAsDataURL(file);e.target.value='';
 };
-function peLoadImg(img) {
-  peCanvas.width=img.naturalWidth||img.width; peCanvas.height=img.naturalHeight||img.height;
+function peLoadImg(img){
+  peCanvas.width=img.naturalWidth||img.width;peCanvas.height=img.naturalHeight||img.height;
   peCtx.drawImage(img,0,0);
-  peCanvas.style.display='block'; document.getElementById('pe-empty').style.display='none';
-  peImageLoaded=true; peUndoStack=[]; peRedoStack=[]; peUpdHistBtns();
+  peCanvas.style.display='block';document.getElementById('pe-empty').style.display='none';
+  peImageLoaded=true;peUndoStack=[];peRedoStack=[];peUpdHistBtns();
   window.peSetTool('label');
 }
-window.peSaveImage = function() {
-  if (!peImageLoaded){alert('尚未載入影像');return;}
-  const a=document.createElement('a'); a.download='photo_'+Date.now()+'.png';
-  a.href=peCanvas.toDataURL('image/png'); a.click();
+window.peSaveImage=function(){
+  if(!peImageLoaded){alert('尚未載入影像');return;}
+  const a=document.createElement('a');a.download='photo_'+Date.now()+'.png';
+  a.href=peCanvas.toDataURL('image/png');a.click();
 };
 
 })(); // end photo editor IIFE
