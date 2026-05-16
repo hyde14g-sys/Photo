@@ -2077,7 +2077,8 @@ function generateExport() {
   const allMergeAmt = mergeTotal + manualMergeTotal;
   const allMergeQtyVal = mergeQtyTotal + manualMergeQtyTotal;
   const mergeLines = allMergeAmt > 0 ? [
-    mergeQtyTotal > 0 ? `（上期件數 ${mergeQtyTotal} 件）` : '',
+    mergeQtyTotal > 0 ? `（前期件數 ${mergeQtyTotal} 件）` : '',
+    `（前期金額 $${mergeTotal}）`,
   ].filter(Boolean) : [];
   const text = [
     '匯款完每週六日一出貨',
