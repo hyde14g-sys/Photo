@@ -2095,6 +2095,7 @@ function generateExport() {
     '',
     ...itemLines,
     ...mergeLines,
+    `消費總金額 $${ordersAmount + allMergeAmt}`,
     ...(reserveTotal > 0 ? [`（預留金 -$${reserveTotal}）`] : []),
     '',
     // 若合計為負數，顯示預留金餘額而非匯款總金額
