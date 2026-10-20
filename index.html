@@ -530,20 +530,40 @@
       await this.unbill(snap.docs.map(d => d.id));
       return snap.size;
     },
-    async getPhoto(path) { return await getBlob(sRef(storage, path)); }
+    async getPhoto(path) { return await getBlob(sRef(storage, path)); },
+    // 3.31：掃碼 → 用 FB 帳號找照片（同名不同人不會混），沒有 FB 資料的同名照片另外列
+    async searchFb(key, fbUrl, rawName) {
+      const [fm, fc] = await Promise.all([getDoc(doc(db, "meta", "sortFb")), getDoc(doc(db, "meta", "fbCustomers"))]);
+      const ent = fm.exists() ? (fm.data().map || {})[key] : null;
+      const custName = fc.exists() ? ((fc.data().map || {})[key] || '') : '';
+      const disp = ent ? ent.disp : rawName;
+      const qs = [getDocs(query(collection(db, "sort_items"), where("fbKey", "==", key)))];
+      if (fbUrl) qs.push(getDocs(query(collection(db, "sort_items"), where("fb", "==", fbUrl))));
+      const names = [...new Set([disp, rawName, custName].filter(Boolean))];
+      qs.push(getDocs(query(collection(db, "sort_items"), where("name", "in", names))));
+      const res = await Promise.all(qs), byId = new Map(), nofb = new Map();
+      res.slice(0, -1).forEach(r => r.docs.forEach(d => byId.set(d.id, d.data())));
+      res[res.length - 1].docs.forEach(d => { const it = d.data(); if (!byId.has(d.id) && !it.fb && !it.fbKey) nofb.set(d.id, it); });
+      const srt = a => [...a.values()].sort((x, y) => x.ts - y.ts);
+      return { items: srt(byId), nofb: srt(nofb), disp, custName };
+    },
+    async saveFbCustomer(key, name) {
+      await setDoc(doc(db, "meta", "fbCustomers"), { map: { [key]: name } }, { merge: true });
+    }
   };
 
   window.firebaseReady = true;
   if (window._cloudProfiles !== undefined && window.applyCloudProfiles) window.applyCloudProfiles(window._cloudProfiles);
   if (typeof window.onFirebaseReady === 'function') window.onFirebaseReady();
 </script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 </head>
 <body>
 
 <div class="header">
   <div style="display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap">
     <img src="data:image/jpeg;base64,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" alt="史塔兔" style="width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid var(--accent);box-shadow:0 0 16px rgba(245,197,66,0.4)">
-    <h1>史塔兔 GOGO STAR 2 <span style="font-size:0.45em;color:var(--muted);font-weight:400;vertical-align:middle;letter-spacing:0.05em">Ver 3.30</span></h1>
+    <h1>史塔兔 GOGO STAR 2 <span style="font-size:0.45em;color:var(--muted);font-weight:400;vertical-align:middle;letter-spacing:0.05em">Ver 3.31</span></h1>
   </div>
   <p id="dailyQuote" style="color:#39ff14;text-shadow:0 0 8px #39ff14;">輕輕鬆鬆算訂單 老婆辛苦了</p>
 </div>
@@ -560,6 +580,7 @@
         <div style="display:flex;gap:8px;align-items:center">
           <input id="slName" list="slNameList" autocomplete="off" placeholder="📦 輸入客人名字，讀取分貨照片..." style="flex:1;min-width:0;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.95rem;padding:9px 12px;outline:none;font-family:'Noto Sans TC',sans-serif" onkeydown="if(event.key==='Enter'){event.preventDefault();slSearch();}">
           <button class="btn-primary" style="padding:9px 16px;white-space:nowrap" onclick="slSearch()">🔍 搜尋</button>
+          <button class="btn-secondary" id="slScanBtn" style="padding:9px 12px;white-space:nowrap;color:#60a5fa;border-color:#60a5fa" onclick="slScanOpen()">📷 掃碼</button>
         </div>
         <datalist id="slNameList"></datalist>
         <div id="slResult"></div>
@@ -2302,8 +2323,14 @@ function saveCurrentCustomer() {
   const doSave = () => {
     if (window.saveToFirestore) {
       window.saveToFirestore(record).then(async () => {
-        if (window.pendingSort && window.pendingSort.ids.length && window.pendingSort.name === name && record._docId) {
-          try { await window.sortLink.markBilled(window.pendingSort.ids, record._docId, name); slAfterSaved(window.pendingSort.ids.length); }
+        const ps = window.pendingSort;
+        const psOk = ps && ps.ids.length && record._docId && (ps.name === name || (ps.fbKey && confirm(`分貨照片是掃碼找到的「${ps.name}」\n訂單客人是「${name}」\n\n要把這 ${ps.ids.length} 件標記已開單，並記住這個 FB＝「${name}」嗎？`)));
+        if (psOk) {
+          try {
+            await window.sortLink.markBilled(ps.ids, record._docId, name);
+            if (ps.fbKey) { try { await window.sortLink.saveFbCustomer(ps.fbKey, name); } catch (e2) { console.warn('記住 FB 失敗', e2); } }
+            slAfterSaved(ps.ids.length);
+          }
           catch (e) { alert('⚠️ 訂單已存，但分貨「已開單」標記失敗：' + e.message + '\n請到照片標記區手動確認'); }
         }
         mergedFromIds.forEach(oldId => {
@@ -3677,8 +3704,97 @@ async function slAlias(sortName) {
   await slSearch(name);
 }
 
-function slUnbilled() { return slState ? slState.items.filter(x => !x.billedOrder) : []; }
-function slBilled() { return slState ? slState.items.filter(x => x.billedOrder) : []; }
+function slAll() { return slState ? slState.items.concat(slState.fbKey && slIncNoFb ? slState.nofb : []) : []; }
+function slUnbilled() { return slAll().filter(x => !x.billedOrder); }
+function slBilled() { return slAll().filter(x => x.billedOrder); }
+let slIncNoFb = false;
+
+// ── 3.31 掃碼 ──
+function slFbKey(u) {
+  if (!u) return '';
+  try { const x = new URL(u, 'https://www.facebook.com'); const id = x.searchParams.get('id'); return (x.pathname.replace(/\/+$/, '') + (id ? '?id=' + id : '')).toLowerCase(); }
+  catch (e) { return ''; }
+}
+function slParseQR(text) {
+  const h = text.indexOf('#'); if (h < 0) return null;
+  const dec = x => { try { return decodeURIComponent(String(x).replace(/\+/g, ' ')); } catch (e) { return String(x); } };
+  const p = text.slice(h + 1).split('|').map(dec), fb = text.slice(0, h);
+  if (p[0] === 'L1' && p.length >= 4) return { fb, name: (p[1] || '').trim() };
+  if (p[0] === 'L2' && p.length >= 5) return { fb, name: (p[2] || '').trim() };
+  return null;
+}
+let slCam = null;
+function slScanClose() {
+  if (slCam) { slCam.stop = true; if (slCam.stream) slCam.stream.getTracks().forEach(t => t.stop()); }
+  slCam = null; const o = document.getElementById('slScanOv'); if (o) o.remove();
+}
+function slDecode(src, w, h) {
+  if (!window.jsQR) return null;
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  const ctx = c.getContext('2d', { willReadFrequently: true }); ctx.drawImage(src, 0, 0, w, h);
+  const r = jsQR(ctx.getImageData(0, 0, w, h).data, w, h, { inversionAttempts: 'attemptBoth' });
+  return r ? r.data : null;
+}
+async function slScanOpen() {
+  slScanClose();
+  const ov = document.createElement('div'); ov.id = 'slScanOv';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:99990;background:rgba(0,0,0,0.92);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px;font-family:"Noto Sans TC",sans-serif;color:#fff';
+  ov.innerHTML = '<div style="font-weight:900;color:#f5c542">📷 對準衣服上的標籤 QR</div><video id="slScanVid" playsinline muted style="width:100%;max-width:420px;border-radius:12px;border:2px solid #f5c542;background:#000"></video><div id="slScanMsg" style="font-size:0.85rem;color:#aaa">開啟相機中...</div>'
+    + '<div style="display:flex;gap:8px"><label class="btn-secondary" style="padding:9px 14px;cursor:pointer">🖼️ 用照片<input type="file" accept="image/*" id="slScanFile" style="display:none"></label><button class="btn-secondary" style="padding:9px 14px" onclick="slScanClose()">✕ 關閉</button></div>';
+  document.body.appendChild(ov);
+  const cam = slCam = { stop: false };
+  document.getElementById('slScanFile').onchange = async e => {
+    const f = e.target.files[0]; if (!f) return;
+    try { const b = await createImageBitmap(f), k = Math.min(1, 1600 / Math.max(b.width, b.height)); const t = slDecode(b, Math.round(b.width * k), Math.round(b.height * k)); if (t) { slScanClose(); slScanResult(t); } else document.getElementById('slScanMsg').textContent = '❌ 這張照片讀不到 QR，請再試一次'; }
+    catch (err) { document.getElementById('slScanMsg').textContent = '❌ ' + err.message; }
+  };
+  try {
+    cam.stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: { ideal: 1280 } }, audio: false });
+    if (cam.stop) return cam.stream.getTracks().forEach(t => t.stop());
+    const v = document.getElementById('slScanVid'); v.srcObject = cam.stream; await v.play();
+    document.getElementById('slScanMsg').textContent = '🔎 掃描中...';
+    const tick = () => {
+      if (cam.stop) return;
+      if (v.videoWidth) { const k = Math.min(1, 960 / v.videoWidth); const t = slDecode(v, Math.round(v.videoWidth * k), Math.round(v.videoHeight * k)); if (t) { if (navigator.vibrate) navigator.vibrate(60); slScanClose(); return slScanResult(t); } }
+      setTimeout(tick, 150);
+    };
+    tick();
+  } catch (e) { const m = document.getElementById('slScanMsg'); if (m) m.textContent = '⚠️ 無法開啟相機（' + e.message + '），可以改用「用照片」'; }
+}
+async function slScanResult(text) {
+  const p = slParseQR(text);
+  if (!p || !p.name) return alert('⚠️ 看不懂這個 QR：\n' + text);
+  const key = slFbKey(p.fb);
+  if (!key) { alert(`這張標籤沒有 FB 資料，改用名字「${p.name}」搜尋\n（同名的人可能會混在一起，請自己確認）`); return slSearch(p.name); }
+  return slSearchFb(key, p.fb, p.name);
+}
+async function slSearchFb(key, fbUrl, rawName) {
+  if (!window.sortLink) return alert('資料庫尚未連線');
+  slBox('<div style="padding:10px 0;color:var(--muted);font-size:0.85rem">⏳ 用 FB 帳號讀取分貨中...</div>');
+  try {
+    const r = await window.sortLink.searchFb(key, fbUrl, rawName);
+    const name = r.custName || r.disp;
+    document.getElementById('slName').value = name;
+    slIncNoFb = false;
+    slState = { name, sortName: r.disp, items: r.items, nofb: r.nofb, fbKey: key, fbUrl, rawName, linked: !!r.custName, merges: [] };
+    if (!r.items.length && !r.nofb.length) { slBox(`<div style="padding:10px 0;font-size:0.88rem;color:var(--muted)">📭 分貨裡沒有這個 FB 帳號（${slEsc(rawName)}）的照片</div>`); return; }
+    await slRender();
+  } catch (e) { slBox(`<div style="color:#fb7185;padding:8px 0">❌ 讀取失敗：${slEsc(e.message)}</div>`); }
+}
+async function slRelink() {
+  const st = slState; if (!st || !st.fbKey) return;
+  const v = prompt('這個 FB 帳號要開給史塔兔的哪位客人？', st.name); if (v === null || !v.trim()) return;
+  try { await window.sortLink.saveFbCustomer(st.fbKey, v.trim()); } catch (e) { return alert('❌ 記住失敗：' + e.message); }
+  await slSearchFb(st.fbKey, st.fbUrl, st.rawName);
+}
+function slFbHtml() {
+  const st = slState; if (!st || !st.fbKey) return '';
+  const link = st.linked
+    ? `<div style="font-size:0.78rem;color:#4ade80;margin-top:4px">🔗 已記住：這個 FB＝「${slEsc(st.name)}」 <a href="#" onclick="slRelink();return false" style="color:#60a5fa">改</a></div>`
+    : `<div style="font-size:0.78rem;color:#f5c542;margin-top:4px">👤 第一次掃這位（分貨名「${slEsc(st.sortName)}」），存單後會記住這個 FB＝訂單上的客人 <a href="#" onclick="slRelink();return false" style="color:#60a5fa">現在指定</a></div>`;
+  const nf = st.nofb.length ? `<label style="display:block;margin-top:6px;font-size:0.8rem;color:#fb923c"><input type="checkbox" id="slIncNoFb" ${slIncNoFb ? 'checked' : ''} onchange="slIncNoFb=this.checked;slRender()"> ⚠️ 另有 ${st.nofb.length} 件同名但沒有 FB 資料的照片（${st.nofb.map(x => slMoney(x.price)).join('、')}），可能是別人，確定是這位才勾</label>` : '';
+  return link + nf;
+}
 
 async function slPhoto(it) {
   if (slBlobCache.has(it.path)) return slBlobCache.get(it.path);
@@ -3731,7 +3847,7 @@ async function slRender() {
   const head = `<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px">
       <b style="color:#f5c542;font-size:1rem">📦 ${slEsc(st.name)}　未開單 ${un.length} 件　${slMoney(total)}</b>
       ${st.sortName !== st.name ? `<span style="font-size:0.75rem;color:var(--muted)">（分貨名：${slEsc(st.sortName)}）</span>` : ''}
-    </div>`;
+    </div>` + slFbHtml();
   const billedHtml = bl.length ? `<label style="display:block;margin-top:10px;font-size:0.8rem;color:var(--muted)"><input type="checkbox" id="slShowBilled" ${slShowBilled ? 'checked' : ''} onchange="slShowBilled=this.checked;slRender()"> 顯示已開單（${bl.length} 件）</label>` +
     (slShowBilled ? `<div style="margin-top:6px">` + bl.map(x => `<div style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:0.82rem;color:var(--muted);border-bottom:1px solid #2a2a36"><span style="flex:1">✔ 已開單 ${slMoney(x.price)}</span><button class="btn-secondary" style="padding:3px 10px;font-size:0.75rem" data-slunbill="${slEsc(x.id)}">還原</button></div>`).join('') +
       `<button class="btn-secondary" style="margin-top:6px;padding:5px 12px;font-size:0.78rem" data-slunbill="__all">↩ 全部還原</button></div>` : '') : '';
@@ -3763,7 +3879,7 @@ function slImport() {
   const inList = (window.customerNames || []).includes(st.name);
   if (inList && cur !== st.name && typeof selectCustomerName === 'function') selectCustomerName(st.name);
   else { document.getElementById('customerNameInput').value = st.name; if (typeof updateOrderCustomerTag === 'function') updateOrderCustomerTag(st.name); }
-  window.pendingSort = { name: st.name, ids: un.map(x => x.id) };
+  window.pendingSort = { name: st.name, ids: un.map(x => x.id), fbKey: st.fbKey || '' };
   renderTable(); generateExport();
   alert(`✅ 已帶入 ${un.length} 件、${byPrice.size} 種金額，合計 ${slMoney(un.reduce((s, x) => s + x.price, 0))}\n存單後這些分貨會標記為「已開單」`);
 }
@@ -3779,8 +3895,8 @@ async function slShare(files) {
 }
 function slShareAll() { if (slState && slState.merges.length) slShare(slState.merges.map(m => new File([m.blob], m.file, { type: 'image/jpeg' }))); }
 
-function slAfterSaved(n) { if (slState) { const ids = new Set(window.pendingSort.ids); slState.items.forEach(x => { if (ids.has(x.id)) x.billedOrder = 'saved'; }); } window.pendingSort = null; setTimeout(() => { if (slState) slRender(); }, 0); }
-function slRefreshIfShowing() { if (slState) slSearch(slState.name); }
+function slAfterSaved(n) { if (slState) { const ids = new Set(window.pendingSort.ids); slAll().forEach(x => { if (ids.has(x.id)) x.billedOrder = 'saved'; }); if (window.pendingSort.fbKey && slState.fbKey === window.pendingSort.fbKey) { slState.linked = true; slState.name = document.getElementById('customerNameInput').value.trim() || slState.name; } } window.pendingSort = null; setTimeout(() => { if (slState) slRender(); }, 0); }
+function slRefreshIfShowing() { if (slState && slState.fbKey) slSearchFb(slState.fbKey, slState.fbUrl, slState.rawName); else if (slState) slSearch(slState.name); }
 
 document.addEventListener('click', async e => {
   const a = e.target.closest('[data-slalias]'); if (a) return slAlias(a.dataset.slalias);
@@ -3790,7 +3906,7 @@ document.addEventListener('click', async e => {
   if (u && slState) {
     const ids = u.dataset.slunbill === '__all' ? slBilled().map(x => x.id) : [u.dataset.slunbill];
     if (!confirm(`把 ${ids.length} 件還原成「未開單」？\n（訂單本身不會被刪除，請自己確認金額）`)) return;
-    try { await window.sortLink.unbill(ids); await slSearch(slState.name); } catch (err) { alert('❌ 還原失敗：' + err.message); }
+    try { await window.sortLink.unbill(ids); await slRefreshIfShowing(); } catch (err) { alert('❌ 還原失敗：' + err.message); }
   }
 });
 
