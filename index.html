@@ -313,7 +313,7 @@
 <!-- Firebase SDK -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, where, setDoc, getDoc, updateDoc, arrayUnion, writeBatch, deleteField } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, where, setDoc, getDoc, updateDoc, arrayUnion, writeBatch, deleteField, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
   import { getStorage, ref as sRef, getBlob } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
   import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
@@ -385,12 +385,23 @@
     window.customerNamesLoadError = e.message || String(e);
   }
 
+  // 3.33：名單只是搜尋用的索引 → 寫入失敗不算存單失敗，放進待補清單（存在這支手機），之後自動補寫
+  const OUTBOX = 'star2_nameOutbox';
+  const outbox = () => { try { return JSON.parse(localStorage.getItem(OUTBOX) || '[]'); } catch (e) { return []; } };
+  window.flushNameOutbox = async () => {
+    const list = outbox(); if (!list.length) return 0;
+    await setDoc(namesRef, { names: arrayUnion(...list) }, { merge: true });
+    localStorage.setItem(OUTBOX, JSON.stringify(outbox().filter(x => !list.includes(x))));
+    return list.length;
+  };
   async function addNameToList(name) {
     const n = (name || '').trim();
     if (!n || window.customerNames.includes(n)) return;
     window.customerNames.push(n);
-    await setDoc(namesRef, { names: arrayUnion(n) }, { merge: true });
+    const list = outbox(); if (!list.includes(n)) { list.push(n); localStorage.setItem(OUTBOX, JSON.stringify(list)); }
+    try { await window.flushNameOutbox(); } catch (e) { console.warn('名單稍後補寫', e); }
   }
+  window.addNameToList = addNameToList;
 
   // 一次性匯入：備份 json → 客戶名單 + 統計暫存
   window.importBackupData = async (records) => {
@@ -447,24 +458,61 @@
     await setDoc(creditDoc, { name: name.trim(), amount: amount, updatedAt: Date.now() });
   };
 
+  window.readCredit = async (name) => { const c = await getDoc(doc(db, "credits", name.trim().replace(/\s+/g, '_'))); return c.exists() ? (c.data().amount || 0) : 0; };
   window.deleteCredit = async (name) => {
     const creditDoc = doc(db, "credits", name.trim().replace(/\s+/g, '_'));
     await deleteDoc(creditDoc);
   };
 
-  // 儲存到 Firestore
-  window.saveToFirestore = async (record) => {
-    record.timestamp = Date.now();
-    const ref = await addDoc(collection(db, "customers"), record);
-    record._docId = ref.id;
+  // ── 存單（3.33）──
+  window.newOrderId = () => { const a = new Uint8Array(20); crypto.getRandomValues(a); return 'o' + Array.from(a, x => 'abcdefghijklmnopqrstuvwxyz0123456789'[x % 36]).join(''); };
+  window.saveOrderTx = async (record, opt) => {
+    const id = record._docId, oref = doc(db, "customers", id);
+    const merged = (opt.merged || []).filter(Boolean), bill = opt.billIds || [];
+    if (merged.length + bill.length + 4 > 500) throw new Error(`一次存單最多約 490 件分貨（這次 ${merged.length + bill.length}）`);
+    return await runTransaction(db, async tx => {
+      const cur = await tx.get(oref);
+      const olds = []; for (const m of merged) olds.push([m, await tx.get(doc(db, "customers", m))]);
+      const its = []; for (const b of bill) its.push([b, await tx.get(doc(db, "sort_items", b))]);
+      if (cur.exists() && !opt.overwrite) return { status: 'exists', data: cur.data() };
+      const now = Date.now();
+      const { _docId, ...data } = record;
+      data.timestamp = cur.exists() ? (cur.data().timestamp || now) : (record.timestamp || now);
+      tx.set(oref, data);
+      olds.forEach(([m, d]) => { if (d.exists()) tx.update(doc(db, "customers", m), { mergedInto: true }); });
+      const skipped = [], billed = [];
+      its.forEach(([b, d]) => {
+        if (!d.exists()) { skipped.push({ id: b, why: '照片已被刪除' }); return; }
+        const x = d.data();
+        if (x.billedOrder && x.billedOrder !== id) { skipped.push({ id: b, why: '已經開給「' + (x.billedName || '') + '」' }); return; }
+        tx.update(doc(db, "sort_items", b), { billedOrder: id, billedName: record.name, billedAt: now }); billed.push(b);
+      });
+      if (opt.fbKey) tx.set(doc(db, "meta", "fbCustomers"), { map: { [opt.fbKey]: record.name } }, { merge: true });
+      if (opt.credit) tx.set(doc(db, "credits", opt.credit.name.trim().replace(/\s+/g, '_')), { name: opt.credit.name.trim(), amount: opt.credit.amount, updatedAt: now });
+      return { status: 'ok', skipped, billed, timestamp: data.timestamp };
+    });
+  };
+  window.orderExists = async (id) => { const d = await getDoc(doc(db, "customers", id)); return d.exists() ? d.data() : null; };
+  window.saveToFirestore = async (record) => {   // 舊介面保留
+    record._docId = record._docId || window.newOrderId();
+    const r = await window.saveOrderTx(record, {});
     await addNameToList(record.name);
-    return ref;
+    return { id: record._docId, result: r };
   };
 
   // 從 Firestore 刪除
+  // 3.33：訂單刪除和分貨還原放在同一個 batch，要嘛一起完成、要嘛都沒發生
   window.deleteFromFirestore = async (docId) => {
-    await deleteDoc(doc(db, "customers", docId));
-    try { const n = await window.sortLink.unbillByOrder(docId); if (n) window._lastUnbilled = n; } catch (e) { console.warn('分貨還原失敗', e); }
+    const snap = await getDocs(query(collection(db, "sort_items"), where("billedOrder", "==", docId)));
+    const ids = snap.docs.map(d => d.id), UNB = { billedOrder: deleteField(), billedName: deleteField(), billedAt: deleteField() };
+    for (let i = 450; i < ids.length; i += 450) {          // 超過 450 件（實務上不會）：先還原多出來的，最後一批跟刪訂單一起
+      const b = writeBatch(db); ids.slice(i, i + 450).forEach(id => b.update(doc(db, "sort_items", id), UNB)); await b.commit();
+    }
+    const b = writeBatch(db);
+    b.delete(doc(db, "customers", docId));
+    ids.slice(0, 450).forEach(id => b.update(doc(db, "sort_items", id), UNB));
+    await b.commit();
+    if (ids.length) window._lastUnbilled = ids.length;
     if (window.statsCacheRemove) window.statsCacheRemove(docId);
   };
 
@@ -534,24 +582,36 @@
     // 3.31：掃碼 → 用 FB 帳號找照片（同名不同人不會混），沒有 FB 資料的同名照片另外列
     async searchFb(key, fbUrl, rawName) {
       const [fm, fc] = await Promise.all([getDoc(doc(db, "meta", "sortFb")), getDoc(doc(db, "meta", "fbCustomers"))]);
-      const ent = fm.exists() ? (fm.data().map || {})[key] : null;
-      const custName = fc.exists() ? ((fc.data().map || {})[key] || '') : '';
+      const fmap = fm.exists() ? (fm.data().map || {}) : {}, cmap = fc.exists() ? (fc.data().map || {}) : {};
+      const ent = fmap[key];
+      const custName = cmap[key] || '';
       const disp = ent ? ent.disp : rawName;
-      const qs = [getDocs(query(collection(db, "sort_items"), where("fbKey", "==", key)))];
+      // 3.32：同一位客人的其他 FB（分貨器合併成同一個名字，或史塔兔指定給同一位客人）
+      const keys = new Set([key]);
+      Object.entries(fmap).forEach(([k, v]) => { if (v.disp === disp) keys.add(k); });
+      if (custName) Object.entries(cmap).forEach(([k, v]) => { if (v === custName) keys.add(k); });
+      const kl = [...keys], names = new Set([disp, rawName, custName].filter(Boolean));
+      kl.forEach(k => { if (fmap[k]) { names.add(fmap[k].disp); names.add(fmap[k].raw); } });
+      const qs = [];
+      for (let i = 0; i < kl.length; i += 10) qs.push(getDocs(query(collection(db, "sort_items"), where("fbKey", "in", kl.slice(i, i + 10)))));
       if (fbUrl) qs.push(getDocs(query(collection(db, "sort_items"), where("fb", "==", fbUrl))));
-      const names = [...new Set([disp, rawName, custName].filter(Boolean))];
-      qs.push(getDocs(query(collection(db, "sort_items"), where("name", "in", names))));
+      const nl = [...names];
+      for (let i = 0; i < nl.length; i += 10) qs.push(getDocs(query(collection(db, "sort_items"), where("name", "in", nl.slice(i, i + 10)))));
       const res = await Promise.all(qs), byId = new Map(), nofb = new Map();
-      res.slice(0, -1).forEach(r => r.docs.forEach(d => byId.set(d.id, d.data())));
-      res[res.length - 1].docs.forEach(d => { const it = d.data(); if (!byId.has(d.id) && !it.fb && !it.fbKey) nofb.set(d.id, it); });
+      res.forEach(r => r.docs.forEach(d => {
+        const it = d.data(), k = it.fbKey || slFbKey(it.fb);
+        if (k && keys.has(k)) byId.set(d.id, it);
+        else if (!k && !byId.has(d.id)) nofb.set(d.id, it);
+      }));
       const srt = a => [...a.values()].sort((x, y) => x.ts - y.ts);
-      return { items: srt(byId), nofb: srt(nofb), disp, custName };
+      return { items: srt(byId), nofb: srt(nofb), disp, custName, nKeys: kl.length };
     },
     async saveFbCustomer(key, name) {
       await setDoc(doc(db, "meta", "fbCustomers"), { map: { [key]: name } }, { merge: true });
     }
   };
 
+  window.flushNameOutbox().catch(e => console.warn('名單補寫失敗，下次再試', e));
   window.firebaseReady = true;
   if (window._cloudProfiles !== undefined && window.applyCloudProfiles) window.applyCloudProfiles(window._cloudProfiles);
   if (typeof window.onFirebaseReady === 'function') window.onFirebaseReady();
@@ -563,7 +623,7 @@
 <div class="header">
   <div style="display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap">
     <img src="data:image/jpeg;base64,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" alt="史塔兔" style="width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid var(--accent);box-shadow:0 0 16px rgba(245,197,66,0.4)">
-    <h1>史塔兔 GOGO STAR 2 <span style="font-size:0.45em;color:var(--muted);font-weight:400;vertical-align:middle;letter-spacing:0.05em">Ver 3.31</span></h1>
+    <h1>史塔兔 GOGO STAR 2 <span style="font-size:0.45em;color:var(--muted);font-weight:400;vertical-align:middle;letter-spacing:0.05em">Ver 3.33</span></h1>
   </div>
   <p id="dailyQuote" style="color:#39ff14;text-shadow:0 0 8px #39ff14;">輕輕鬆鬆算訂單 老婆辛苦了</p>
 </div>
@@ -1803,15 +1863,21 @@ let pendingMergeRecords = [];
 function getCreditKey(name) { return 'credit_' + name.trim(); }
 
 // 預留金餘額：純 Firebase 儲存（覆蓋同名記錄）
-function saveCreditBalance(name, amount) {
-  // 更新本地 map 即時反映
+// 3.33：等雲端存好才算數；失敗 → 提示，並把畫面改回雲端目前的金額
+async function setCreditCloud(name, amount) {
+  const n = name.trim();
   if (!window.creditBalanceMap) window.creditBalanceMap = {};
-  window.creditBalanceMap[name.trim()] = amount;
-  // 存到 Firebase credits collection（覆蓋）
-  if (window.saveCredit) {
-    window.saveCredit(name.trim(), amount);
+  try {
+    if (amount > 0) await window.saveCredit(n, amount); else await window.deleteCredit(n);
+    window.creditBalanceMap[n] = amount > 0 ? amount : 0; return { ok: true, value: window.creditBalanceMap[n] };
+  } catch (e) {
+    let v = window.creditBalanceMap[n];
+    try { const c = await window.readCredit(n); v = c; window.creditBalanceMap[n] = c; } catch (e2) {}
+    alert('❌ 預留金沒有存到雲端：' + e.message + '\n目前雲端金額：$' + (v ?? '?') + '\n請再試一次');
+    return { ok: false, value: v };
   }
 }
+async function saveCreditBalance(name, amount) { return setCreditCloud(name, amount); }
 
 function getCreditBalance(name) {
   const n = name.trim();
@@ -1821,11 +1887,7 @@ function getCreditBalance(name) {
   return 0;
 }
 
-function clearCreditBalance(name) {
-  const n = name.trim();
-  if (window.creditBalanceMap) window.creditBalanceMap[n] = 0;
-  if (window.deleteCredit) window.deleteCredit(n);
-}
+async function clearCreditBalance(name) { return setCreditCloud(name, 0); }
 
 function useCreditBalance(name, amount) {
   const existing = getCreditBalance(name);
@@ -1894,15 +1956,13 @@ function settleAllUnsettled() {
   const count = pendingMergeRecords.length;
   const totalAmt = pendingMergeRecords.reduce((s, r) => s + (r.totalAmount || 0), 0);
   if (!confirm(`確定將「${pendingMergeRecords[0].name}」的 ${count} 筆未結單（共 $${totalAmt.toLocaleString()}）全部標記為已結單完成匯款？\n標記後將無法刪除。`)) return;
-  pendingMergeRecords.forEach(r => {
-    r.settled = true;
-    if (window.updateFirestore && r._docId) {
-      window.updateFirestore(r._docId, { settled: true });
-    }
-  });
+  const recs = pendingMergeRecords.slice();
+  recs.forEach(r => { r.settled = true; });
   document.getElementById('unsettledAlert').style.display = 'none';
   renderCustomerDb();
   refreshStats();
+  Promise.all(recs.filter(r => r._docId && window.updateFirestore).map(r => window.updateFirestore(r._docId, { settled: true }).then(() => null, e => ({ r, e }))))
+    .then(res => { const bad = res.filter(Boolean); if (!bad.length) return; bad.forEach(x => { x.r.settled = false; }); renderCustomerDb(); refreshStats(); alert(`❌ 有 ${bad.length} 筆結單沒有存到雲端：${bad[0].e.message}\n畫面已還原成未結，請再按一次`); });
 }
 
 function applyCreditBalance(amount) {
@@ -2113,6 +2173,7 @@ function copyTable() {
 function clearInput() {
   // 直接清除不詢問
   window.pendingSort = null;
+  window._draftOrder = null;   // 3.33：新的一張單
   orders = [];
   nextId = 1;
   mergeTotal = 0;
@@ -2320,51 +2381,46 @@ function saveCurrentCustomer() {
     record.isCreditOrder = true;
   }
 
-  const doSave = () => {
-    if (window.saveToFirestore) {
-      window.saveToFirestore(record).then(async () => {
-        const ps = window.pendingSort;
-        const psOk = ps && ps.ids.length && record._docId && (ps.name === name || (ps.fbKey && confirm(`分貨照片是掃碼找到的「${ps.name}」\n訂單客人是「${name}」\n\n要把這 ${ps.ids.length} 件標記已開單，並記住這個 FB＝「${name}」嗎？`)));
-        if (psOk) {
-          try {
-            await window.sortLink.markBilled(ps.ids, record._docId, name);
-            if (ps.fbKey) { try { await window.sortLink.saveFbCustomer(ps.fbKey, name); } catch (e2) { console.warn('記住 FB 失敗', e2); } }
-            slAfterSaved(ps.ids.length);
-          }
-          catch (e) { alert('⚠️ 訂單已存，但分貨「已開單」標記失敗：' + e.message + '\n請到照片標記區手動確認'); }
-        }
-        mergedFromIds.forEach(oldId => {
-          const old = (window.customerDb||[]).find(r => Number(r.id) === Number(oldId));
-          if (old && !old.mergedInto) {
-            old.mergedInto = true;
-            if (window.updateFirestore && old._docId) {
-              window.updateFirestore(old._docId, { mergedInto: true });
-            }
-          }
-        });
-        // 儲存預留金餘額到客戶專屬記錄
-        if (creditBalance > 0) {
-          saveCreditBalance(name, creditBalance);
-          alert(`✅ 已儲存「${name}」的訂單！\n💰 預留金餘額 $${creditBalance} 已記錄，下次訂單自動提示`);
-        } else {
-          alert(`✅ 已儲存「${name}」的訂單！${mergedFromIds.length > 0 ? '\n已標記 '+mergedFromIds.length+' 筆舊單為「已併入」' : ''}`);
-        }
-        pendingMergedIds = [];
-        clearInput();
-      }).catch(e => {
-        alert('❌ 儲存失敗：' + e.message);
-      });
-    } else {
-      customerDb.unshift(record);
-      mergedFromIds.forEach(oldId => {
-        const old = customerDb.find(r => Number(r.id) === Number(oldId));
-        if (old) old.mergedInto = true;
-      });
-      if (creditBalance > 0) saveCreditBalance(name, creditBalance);
-      pendingMergedIds = [];
-      renderCustomerDb();
-      alert(`✅ 已儲存「${name}」的訂單！${creditBalance > 0 ? '\n💰 預留金餘額 $'+creditBalance+' 已記錄' : ''}`);
+  const doSave = async () => {
+    if (!window.saveOrderTx) { alert('資料庫尚未連線'); return; }
+    // 2. 固定 ID 跟客人綁在一起：同一位客人重按 → 同一張單（不會變兩張）；換了客人 → 一定是新的一張（不會蓋到前一位）
+    if (!window._draftOrder || window._draftOrder.name !== name) window._draftOrder = { id: window.newOrderId(), num: record.id, name };
+    record._docId = window._draftOrder.id; record.id = window._draftOrder.num;
+    const ps = window.pendingSort;
+    const psOk = !!(ps && ps.ids.length && (ps.name === name || (ps.fbKey && confirm(`分貨照片是掃碼找到的「${ps.name}」\n訂單客人是「${name}」\n\n要把這 ${ps.ids.length} 件標記已開單，並記住這個 FB＝「${name}」嗎？`))));
+    const opt = { merged: mergedFromIds.map(oid => { const o = (window.customerDb || []).find(r => Number(r.id) === Number(oid)); return o && o._docId; }).filter(Boolean),
+                  billIds: psOk ? ps.ids : [], fbKey: psOk && ps.fbKey ? ps.fbKey : '',
+                  credit: creditBalance > 0 ? { name, amount: creditBalance } : null };
+    let res;
+    try {
+      res = await window.saveOrderTx(record, opt);
+      if (res.status === 'exists' && (res.data.name || '') !== name) {   // 保險：雲端那筆是別的客人 → 不覆蓋，換新 ID
+        window._draftOrder = { id: window.newOrderId(), num: record.id, name }; record._docId = window._draftOrder.id;
+        res = await window.saveOrderTx(record, opt);
+      }
+      if (res.status === 'exists') {
+        if ((res.data.exportText || '') === exportText) res = { status: 'ok', skipped: [], billed: opt.billIds, already: true };
+        else if (confirm(`「${name}」這張單之前其實已經存進雲端了（當時沒收到回覆），但內容跟現在不同：\n雲端那筆：$${res.data.totalAmount ?? '?'}\n現在畫面：$${record.totalAmount}\n\n確定＝用現在的內容覆蓋雲端那筆（同一位客人、同一張單）\n取消＝保留雲端那筆，不存`)) res = await window.saveOrderTx(record, { ...opt, overwrite: true });
+        else return;
+      }
+    } catch (e) {
+      let ex = null, checked = false; try { ex = await window.orderExists(record._docId); checked = true; } catch (e2) {}
+      if (!checked) { alert(`⚠️ 不確定「${name}」這張單有沒有存進去（網路不穩，連確認都失敗）。\n\n請等網路正常後，再按一次「儲存本單」：\n· 如果其實已經存好，會顯示「已經存好了」，不會變成兩張\n· 如果沒存，就會正常存進去\n\n畫面先不要清掉。`); return; }
+      if (!ex) { alert('❌ 儲存失敗：' + e.message + '\n已確認雲端沒有這張單，可以直接再按一次「儲存本單」（不會重複）'); return; }
+      res = { status: 'ok', skipped: [], billed: opt.billIds, already: true };
     }
+    // ── 成功：以下只更新這支手機的畫面 ──
+    window._draftOrder = null;
+    try { await window.addNameToList(name); } catch (e) {}
+    mergedFromIds.forEach(oldId => { const old = (window.customerDb || []).find(r => Number(r.id) === Number(oldId)); if (old) old.mergedInto = true; });
+    if (psOk) { window.pendingSort = { ...ps, ids: res.billed || ps.ids }; slAfterSaved((res.billed || ps.ids).length); }
+    if (creditBalance > 0) { if (!window.creditBalanceMap) window.creditBalanceMap = {}; window.creditBalanceMap[name] = creditBalance; }
+    const sk = res.skipped && res.skipped.length ? `\n⚠️ 有 ${res.skipped.length} 件分貨沒有標記：${[...new Set(res.skipped.map(x => x.why))].join('、')}` : '';
+    const pre = res.already ? `✅ 「${name}」這張單其實已經存好了（之前沒收到回覆），沒有重複` : `✅ 已儲存「${name}」的訂單！`;
+    if (creditBalance > 0) alert(`${pre}\n💰 預留金餘額 $${creditBalance} 已記錄，下次訂單自動提示${sk}`);
+    else alert(`${pre}${mergedFromIds.length > 0 ? '\n已標記 ' + mergedFromIds.length + ' 筆舊單為「已併入」' : ''}${sk}`);
+    pendingMergedIds = [];
+    clearInput();
   };
   doSave();
 }
@@ -2672,7 +2728,8 @@ function settleOrder(id) {
   r.settled = true;
   if (isCreditOrder) r.isCreditOrder = true;
   if (window.updateFirestore && r._docId) {
-    window.updateFirestore(r._docId, { settled: true, isCreditOrder: isCreditOrder });
+    window.updateFirestore(r._docId, { settled: true, isCreditOrder: isCreditOrder })
+      .catch(e => { r.settled = false; renderCustomerDb(); refreshStats(); alert('❌ 結單沒有存到雲端：' + e.message + '\n畫面已還原成未結，請再按一次'); });
   }
   renderCustomerDb();
   refreshStats();
@@ -2718,14 +2775,14 @@ function saveCreditEdit() {
     const r = db.find(r => Number(r.id) === id);
     if (!r) { alert('找不到客戶資料，id=' + id); return; }
     document.getElementById('creditEditRow').style.display = 'none';
-    if (newAmt > 0) {
-      document.getElementById('viewCreditAmount').textContent = '$' + newAmt;
-      document.getElementById('viewCreditBlock').style.display = 'flex';
-    } else {
-      document.getElementById('viewCreditBlock').style.display = 'none';
-    }
-    renderCustomerDb();
-    alert('✅ 餘額已更新為 $' + newAmt);
+    // 3.33：3.31 這裡只改畫面、沒存到雲端 → 現在真的存，雲端成功才顯示成功
+    setCreditCloud(r.name, newAmt).then(res => {
+      const v = res.value || 0;
+      if (v > 0) { document.getElementById('viewCreditAmount').textContent = '$' + v; document.getElementById('viewCreditBlock').style.display = 'flex'; }
+      else document.getElementById('viewCreditBlock').style.display = 'none';
+      renderCustomerDb();
+      if (res.ok) alert('✅ 餘額已更新為 $' + v);
+    });
   } catch(e) {
     alert('錯誤：' + e.message);
   }
@@ -2740,9 +2797,11 @@ function clearCreditFromView() {
   const r = (window.customerDb||[]).find(r => Number(r.id) === id);
   if (!r) return;
   if (!confirm(`確定清除「${r.name}」的預留金餘額嗎？`)) return;
-  clearCreditBalance(r.name);
-  document.getElementById('viewCreditBlock').style.display = 'none';
-  renderCustomerDb();
+  clearCreditBalance(r.name).then(res => {
+    if (res.ok) document.getElementById('viewCreditBlock').style.display = 'none';
+    else if (res.value > 0) document.getElementById('viewCreditAmount').textContent = '$' + res.value;
+    renderCustomerDb();
+  });
 }
 
 function copyViewExport() {
@@ -2780,7 +2839,7 @@ function saveCustomerInfo() {
       rec.phone = phone;
       rec.address = address;
       if (rec._docId && window.updateFirestore) {
-        window.updateFirestore(rec._docId, { phone, address });
+        window.updateFirestore(rec._docId, { phone, address }).catch(e => alert('❌ 電話地址沒有存到雲端：' + e.message + '\n請再存一次'));
       }
     });
   } else {
@@ -2820,7 +2879,7 @@ function confirmDeleteYes() {
       customerDb = customerDb.filter(r => r._docId !== delDocId);
       renderCustomerDb();
       if (window._lastUnbilled) { alert(`🔄 已把 ${window._lastUnbilled} 件分貨還原成「未開單」，可以重新帶入`); window._lastUnbilled = 0; slRefreshIfShowing(); }
-    }).catch(e => alert('刪除失敗：' + e.message));
+    }).catch(e => alert('❌ 刪除沒有完成（訂單和分貨都沒變）：' + e.message + '\n請再按一次刪除'));
   } else {
     customerDb = customerDb.filter(r => Number(r.id) !== pendingDeleteId);
     renderCustomerDb();
@@ -3776,7 +3835,7 @@ async function slSearchFb(key, fbUrl, rawName) {
     const name = r.custName || r.disp;
     document.getElementById('slName').value = name;
     slIncNoFb = false;
-    slState = { name, sortName: r.disp, items: r.items, nofb: r.nofb, fbKey: key, fbUrl, rawName, linked: !!r.custName, merges: [] };
+    slState = { name, sortName: r.disp, items: r.items, nofb: r.nofb, fbKey: key, fbUrl, rawName, linked: !!r.custName, nKeys: r.nKeys || 1, merges: [] };
     if (!r.items.length && !r.nofb.length) { slBox(`<div style="padding:10px 0;font-size:0.88rem;color:var(--muted)">📭 分貨裡沒有這個 FB 帳號（${slEsc(rawName)}）的照片</div>`); return; }
     await slRender();
   } catch (e) { slBox(`<div style="color:#fb7185;padding:8px 0">❌ 讀取失敗：${slEsc(e.message)}</div>`); }
@@ -3792,8 +3851,9 @@ function slFbHtml() {
   const link = st.linked
     ? `<div style="font-size:0.78rem;color:#4ade80;margin-top:4px">🔗 已記住：這個 FB＝「${slEsc(st.name)}」 <a href="#" onclick="slRelink();return false" style="color:#60a5fa">改</a></div>`
     : `<div style="font-size:0.78rem;color:#f5c542;margin-top:4px">👤 第一次掃這位（分貨名「${slEsc(st.sortName)}」），存單後會記住這個 FB＝訂單上的客人 <a href="#" onclick="slRelink();return false" style="color:#60a5fa">現在指定</a></div>`;
+  const multi = st.nKeys > 1 ? `<div style="font-size:0.78rem;color:#c4b5fd;margin-top:4px">👥 這位客人有 ${st.nKeys} 個 FB 帳號，照片一起列出（合錯了：按「改」重新指定，或在分貨器下次掃到那個 FB 時改名字）</div>` : '';
   const nf = st.nofb.length ? `<label style="display:block;margin-top:6px;font-size:0.8rem;color:#fb923c"><input type="checkbox" id="slIncNoFb" ${slIncNoFb ? 'checked' : ''} onchange="slIncNoFb=this.checked;slRender()"> ⚠️ 另有 ${st.nofb.length} 件同名但沒有 FB 資料的照片（${st.nofb.map(x => slMoney(x.price)).join('、')}），可能是別人，確定是這位才勾</label>` : '';
-  return link + nf;
+  return link + multi + nf;
 }
 
 async function slPhoto(it) {
