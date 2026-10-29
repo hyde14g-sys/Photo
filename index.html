@@ -580,7 +580,7 @@
     },
     async getPhoto(path) { return await getBlob(sRef(storage, path)); },
     // 3.31：掃碼 → 用 FB 帳號找照片（同名不同人不會混），沒有 FB 資料的同名照片另外列
-    async searchFb(key, fbUrl, rawName) {
+    async searchFb(key, fbUrl, rawName, strict) {
       const [fm, fc] = await Promise.all([getDoc(doc(db, "meta", "sortFb")), getDoc(doc(db, "meta", "fbCustomers"))]);
       const fmap = fm.exists() ? (fm.data().map || {}) : {}, cmap = fc.exists() ? (fc.data().map || {}) : {};
       const ent = fmap[key];
@@ -588,10 +588,12 @@
       const disp = ent ? ent.disp : rawName;
       // 3.32：同一位客人的其他 FB（分貨器合併成同一個名字，或史塔兔指定給同一位客人）
       const keys = new Set([key]);
-      Object.entries(fmap).forEach(([k, v]) => { if (v.disp === disp) keys.add(k); });
-      if (custName) Object.entries(cmap).forEach(([k, v]) => { if (v === custName) keys.add(k); });
+      // 3.34：strict＝從「同名不同 FB」選擇框選的 → 只看這一個 FB，不再用名字把別人合進來
+      if (!strict) Object.entries(fmap).forEach(([k, v]) => { if (v.disp === disp) keys.add(k); });
+      if (custName && !strict) Object.entries(cmap).forEach(([k, v]) => { if (v === custName) keys.add(k); });
       const kl = [...keys], names = new Set([disp, rawName, custName].filter(Boolean));
       kl.forEach(k => { if (fmap[k]) { names.add(fmap[k].disp); names.add(fmap[k].raw); } });
+      if (strict) return await this._fbQuery(kl, fbUrl, [...names], keys, disp, custName);
       const qs = [];
       for (let i = 0; i < kl.length; i += 10) qs.push(getDocs(query(collection(db, "sort_items"), where("fbKey", "in", kl.slice(i, i + 10)))));
       if (fbUrl) qs.push(getDocs(query(collection(db, "sort_items"), where("fb", "==", fbUrl))));
@@ -603,6 +605,15 @@
         if (k && keys.has(k)) byId.set(d.id, it);
         else if (!k && !byId.has(d.id)) nofb.set(d.id, it);
       }));
+      const srt = a => [...a.values()].sort((x, y) => x.ts - y.ts);
+      return { items: srt(byId), nofb: srt(nofb), disp, custName, nKeys: kl.length };
+    },
+    async _fbQuery(kl, fbUrl, nl, keys, disp, custName) {
+      const qs = [getDocs(query(collection(db, "sort_items"), where("fbKey", "in", kl)))];
+      if (fbUrl) qs.push(getDocs(query(collection(db, "sort_items"), where("fb", "==", fbUrl))));
+      for (let i = 0; i < nl.length; i += 10) qs.push(getDocs(query(collection(db, "sort_items"), where("name", "in", nl.slice(i, i + 10)))));
+      const res = await Promise.all(qs), byId = new Map(), nofb = new Map();
+      res.forEach(r => r.docs.forEach(d => { const it = d.data(), k = it.fbKey || slFbKey(it.fb); if (k && keys.has(k)) byId.set(d.id, it); else if (!k && !byId.has(d.id)) nofb.set(d.id, it); }));
       const srt = a => [...a.values()].sort((x, y) => x.ts - y.ts);
       return { items: srt(byId), nofb: srt(nofb), disp, custName, nKeys: kl.length };
     },
@@ -623,7 +634,7 @@
 <div class="header">
   <div style="display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap">
     <img src="data:image/jpeg;base64,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" alt="史塔兔" style="width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid var(--accent);box-shadow:0 0 16px rgba(245,197,66,0.4)">
-    <h1>史塔兔 GOGO STAR 2 <span style="font-size:0.45em;color:var(--muted);font-weight:400;vertical-align:middle;letter-spacing:0.05em">Ver 3.33</span></h1>
+    <h1>史塔兔 GOGO STAR 2 <span style="font-size:0.45em;color:var(--muted);font-weight:400;vertical-align:middle;letter-spacing:0.05em">Ver 3.34</span></h1>
   </div>
   <p id="dailyQuote" style="color:#39ff14;text-shadow:0 0 8px #39ff14;">輕輕鬆鬆算訂單 老婆辛苦了</p>
 </div>
@@ -3753,8 +3764,33 @@ async function slSearch(nameArg) {
           sug.map(x => `<button class="btn-secondary" style="margin:0 6px 6px 0;padding:6px 12px" data-slalias="${slEsc(x)}">✅ 是「${slEsc(x)}」</button>`).join('') : ''));
       return;
     }
+    if (slChooseFb(name, r.items)) return;
     await slRender();
   } catch (e) { slBox(`<div style="color:#fb7185;padding:8px 0">❌ 讀取失敗：${slEsc(e.message)}</div>`); }
+}
+
+// ── 3.34：名字搜尋時，同名照片來自不同 FB → 先跳選擇框，每個 FB 可以點開看是誰 ──
+let slFbGroups = null;
+function slFbHref(u) { try { const x = new URL(u, 'https://www.facebook.com'); return /^https?:$/.test(x.protocol) ? x.href : ''; } catch (e) { return ''; } }
+function slChooseFb(name, items) {
+  const g = new Map(), nofb = [];
+  items.forEach(it => { const k = it.fbKey || slFbKey(it.fb); if (!k) { nofb.push(it); return; } if (!g.has(k)) g.set(k, { key: k, fb: it.fb, raw: it.name, items: [] }); g.get(k).items.push(it); });
+  if (g.size < 2) return false;
+  slFbGroups = [...g.values()];
+  const row = (x, i) => {
+    const un = x.items.filter(y => !y.billedOrder), href = slFbHref(x.fb);
+    return `<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 10px;margin-top:6px;border:1px solid #60a5fa;border-radius:8px;background:rgba(96,165,250,0.06)">
+      <div style="flex:1;min-width:140px;font-size:0.85rem"><b style="color:#60a5fa">FB${i + 1}</b>　未開單 ${un.length} 件 ${slMoney(un.reduce((s, y) => s + y.price, 0))}${x.items.length > un.length ? `<span style="color:var(--muted)">（已開 ${x.items.length - un.length}）</span>` : ''}</div>
+      ${href ? `<a href="${slEsc(href)}" target="_blank" rel="noopener" class="btn-secondary" style="padding:6px 12px;text-decoration:none;color:#60a5fa;border-color:#60a5fa">👤 開 FB${i + 1}</a>` : ''}
+      <button class="btn-primary" style="padding:6px 14px" data-slpickfb="${i}">✅ 選這位</button></div>`;
+  };
+  slBox(`<div style="margin-top:10px;padding:10px;border:2px solid #f5c542;border-radius:10px">
+    <div style="color:#f5c542;font-weight:700;font-size:0.92rem">⚠️「${slEsc(name)}」有 ${g.size} 個不同的 FB 帳號</div>
+    <div style="font-size:0.78rem;color:var(--muted);margin-top:3px">可能是同名不同人：先點「開 FB」看是誰，再選要開單的那位</div>
+    ${slFbGroups.map(row).join('')}
+    ${nofb.length ? `<div style="font-size:0.78rem;color:#fb923c;margin-top:8px">另有 ${nofb.length} 件沒有 FB 資料（${nofb.map(x => slMoney(x.price)).join('、')}），選了之後可以勾選要不要算進去</div>` : ''}
+    <button class="btn-secondary" style="margin-top:8px;padding:5px 12px;font-size:0.78rem" data-slpickfb="all">確定是同一個人 → 全部一起列出</button></div>`);
+  return true;
 }
 
 async function slAlias(sortName) {
@@ -3827,15 +3863,15 @@ async function slScanResult(text) {
   if (!key) { alert(`這張標籤沒有 FB 資料，改用名字「${p.name}」搜尋\n（同名的人可能會混在一起，請自己確認）`); return slSearch(p.name); }
   return slSearchFb(key, p.fb, p.name);
 }
-async function slSearchFb(key, fbUrl, rawName) {
+async function slSearchFb(key, fbUrl, rawName, strict) {
   if (!window.sortLink) return alert('資料庫尚未連線');
   slBox('<div style="padding:10px 0;color:var(--muted);font-size:0.85rem">⏳ 用 FB 帳號讀取分貨中...</div>');
   try {
-    const r = await window.sortLink.searchFb(key, fbUrl, rawName);
+    const r = await window.sortLink.searchFb(key, fbUrl, rawName, strict);
     const name = r.custName || r.disp;
     document.getElementById('slName').value = name;
     slIncNoFb = false;
-    slState = { name, sortName: r.disp, items: r.items, nofb: r.nofb, fbKey: key, fbUrl, rawName, linked: !!r.custName, nKeys: r.nKeys || 1, merges: [] };
+    slState = { name, sortName: r.disp, items: r.items, nofb: r.nofb, fbKey: key, fbUrl, rawName, strict: !!strict, linked: !!r.custName, nKeys: r.nKeys || 1, merges: [] };
     if (!r.items.length && !r.nofb.length) { slBox(`<div style="padding:10px 0;font-size:0.88rem;color:var(--muted)">📭 分貨裡沒有這個 FB 帳號（${slEsc(rawName)}）的照片</div>`); return; }
     await slRender();
   } catch (e) { slBox(`<div style="color:#fb7185;padding:8px 0">❌ 讀取失敗：${slEsc(e.message)}</div>`); }
@@ -3844,14 +3880,15 @@ async function slRelink() {
   const st = slState; if (!st || !st.fbKey) return;
   const v = prompt('這個 FB 帳號要開給史塔兔的哪位客人？', st.name); if (v === null || !v.trim()) return;
   try { await window.sortLink.saveFbCustomer(st.fbKey, v.trim()); } catch (e) { return alert('❌ 記住失敗：' + e.message); }
-  await slSearchFb(st.fbKey, st.fbUrl, st.rawName);
+  await slSearchFb(st.fbKey, st.fbUrl, st.rawName, st.strict);
 }
 function slFbHtml() {
   const st = slState; if (!st || !st.fbKey) return '';
   const link = st.linked
     ? `<div style="font-size:0.78rem;color:#4ade80;margin-top:4px">🔗 已記住：這個 FB＝「${slEsc(st.name)}」 <a href="#" onclick="slRelink();return false" style="color:#60a5fa">改</a></div>`
     : `<div style="font-size:0.78rem;color:#f5c542;margin-top:4px">👤 第一次掃這位（分貨名「${slEsc(st.sortName)}」），存單後會記住這個 FB＝訂單上的客人 <a href="#" onclick="slRelink();return false" style="color:#60a5fa">現在指定</a></div>`;
-  const multi = st.nKeys > 1 ? `<div style="font-size:0.78rem;color:#c4b5fd;margin-top:4px">👥 這位客人有 ${st.nKeys} 個 FB 帳號，照片一起列出（合錯了：按「改」重新指定，或在分貨器下次掃到那個 FB 時改名字）</div>` : '';
+  const fbBtn = st.fbUrl && slFbHref(st.fbUrl) ? ` <a href="${slEsc(slFbHref(st.fbUrl))}" target="_blank" rel="noopener" style="color:#60a5fa">👤 開這位 FB</a>` : '';
+  const multi = (st.nKeys > 1 ? `<div style="font-size:0.78rem;color:#c4b5fd;margin-top:4px">👥 這位客人有 ${st.nKeys} 個 FB 帳號，照片一起列出（合錯了：按「改」重新指定，或在分貨器下次掃到那個 FB 時改名字）</div>` : '') + (fbBtn ? `<div style="font-size:0.78rem;margin-top:4px">${fbBtn}</div>` : '');
   const nf = st.nofb.length ? `<label style="display:block;margin-top:6px;font-size:0.8rem;color:#fb923c"><input type="checkbox" id="slIncNoFb" ${slIncNoFb ? 'checked' : ''} onchange="slIncNoFb=this.checked;slRender()"> ⚠️ 另有 ${st.nofb.length} 件同名但沒有 FB 資料的照片（${st.nofb.map(x => slMoney(x.price)).join('、')}），可能是別人，確定是這位才勾</label>` : '';
   return link + multi + nf;
 }
@@ -3956,10 +3993,16 @@ async function slShare(files) {
 function slShareAll() { if (slState && slState.merges.length) slShare(slState.merges.map(m => new File([m.blob], m.file, { type: 'image/jpeg' }))); }
 
 function slAfterSaved(n) { if (slState) { const ids = new Set(window.pendingSort.ids); slAll().forEach(x => { if (ids.has(x.id)) x.billedOrder = 'saved'; }); if (window.pendingSort.fbKey && slState.fbKey === window.pendingSort.fbKey) { slState.linked = true; slState.name = document.getElementById('customerNameInput').value.trim() || slState.name; } } window.pendingSort = null; setTimeout(() => { if (slState) slRender(); }, 0); }
-function slRefreshIfShowing() { if (slState && slState.fbKey) slSearchFb(slState.fbKey, slState.fbUrl, slState.rawName); else if (slState) slSearch(slState.name); }
+function slRefreshIfShowing() { if (slState && slState.fbKey) slSearchFb(slState.fbKey, slState.fbUrl, slState.rawName, slState.strict); else if (slState) slSearch(slState.name); }
 
 document.addEventListener('click', async e => {
   const a = e.target.closest('[data-slalias]'); if (a) return slAlias(a.dataset.slalias);
+  const pf = e.target.closest('[data-slpickfb]');
+  if (pf && slFbGroups && slState) {
+    if (pf.dataset.slpickfb === 'all') { slFbGroups = null; return slRender(); }
+    const x = slFbGroups[+pf.dataset.slpickfb]; slFbGroups = null;
+    return slSearchFb(x.key, x.fb, x.raw, true);
+  }
   const sh = e.target.closest('[data-slshare]'); if (sh && slState) { const m = slState.merges[+sh.dataset.slshare]; return slShare([new File([m.blob], m.file, { type: 'image/jpeg' })]); }
   const v = e.target.closest('[data-slview]'); if (v && slState) { const m = slState.merges[+v.dataset.slview]; const w = window.open(); if (w) w.document.write(`<title>${slEsc(m.file)}</title><body style="margin:0;background:#000"><img src="${m.url}" style="width:100%">`); return; }
   const u = e.target.closest('[data-slunbill]');
