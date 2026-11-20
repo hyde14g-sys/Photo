@@ -1085,8 +1085,6 @@
         <button id="btn_兔中信" class="profile-btn" style="color:#ff3355;border-color:#ff3355" onclick="openProfile('兔中信')">兔中信</button>
         <button id="btn_兔華南" class="profile-btn" style="color:#ff3355;border-color:#ff3355" onclick="openProfile('兔華南')">兔華南</button>
         <button id="btn_兔土地" class="profile-btn" style="color:#ff3355;border-color:#ff3355" onclick="openProfile('兔土地')">兔土地</button>
-        <button id="btn_亦郵局" class="profile-btn" style="color:#ff8c00;border-color:#ff8c00" onclick="openProfile('亦郵局')">亦郵局</button>
-        <button id="btn_亦中信" class="profile-btn" style="color:#ff8c00;border-color:#ff8c00" onclick="openProfile('亦中信')">亦中信</button>
         <button class="btn-secondary" style="padding:5px 12px;font-size:0.78rem;color:#39ff14;border-color:#39ff14" onclick="generateExport()">重新產生</button>
         <button class="btn-primary" style="padding:7px 18px;font-size:0.95rem" id="copyExportBtn" onclick="copyExport()">📋 複製文字</button>
         <button class="btn-secondary" style="padding:7px 18px;font-size:0.95rem;color:#f59e0b;border-color:#f59e0b" onclick="saveCurrentCustomer()">💾 儲存本單</button>
@@ -2230,8 +2228,6 @@ const defaultProfiles = {
   '兔中信': { bankName: '', accNum: '', holderName: '' },
   '兔華南': { bankName: '', accNum: '', holderName: '' },
   '兔土地': { bankName: '', accNum: '', holderName: '' },
-  '亦郵局': { bankName: '', accNum: '', holderName: '' },
-  '亦中信': { bankName: '', accNum: '', holderName: '' },
 };
 
 // 自動偵測舊資料是否相容，不相容就重置
@@ -2292,7 +2288,7 @@ function saveProfile() {
 }
 
 function updateProfileButtons() {
-  ['蛇郵局','蛇富邦','兔中信','兔華南','兔土地','亦郵局','亦中信'].forEach(name => {
+  ['蛇郵局','蛇富邦','兔中信','兔華南','兔土地'].forEach(name => {
     const btn = document.getElementById('btn_' + name);
     if (!btn) return;
     const isActive = name === activeProfile;
