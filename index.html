@@ -2094,7 +2094,7 @@ function generateExport() {
   const totalQtyAll = (mergeQtyTotal > 0 || totalManualMergeQty > 0) ? totalQty + mergeQtyTotal + totalManualMergeQty : 0;
   const allMergeAmt = mergeTotal + manualMergeTotal;
   const allMergeQtyVal = mergeQtyTotal + manualMergeQtyTotal;
-  const mergeLines = allMergeAmt > 0 ? [
+  const mergeLines = mergeTotal > 0 ? [  // 3.36：只有按鈕加入的併單才印這段（手動輸入的上面已印過）
     mergeQtyTotal > 0 ? `（前期件數 ${mergeQtyTotal} 件）` : '',
     `（前期金額 $${mergeTotal}）`,
   ].filter(Boolean) : [];
